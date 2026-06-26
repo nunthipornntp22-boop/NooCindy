@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#ffe9f1" />
+  <title>Cindy Care</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=13" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- ============ TOPBAR ============ -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="avatar" id="catAvatar">🐱</div>
+        <div>
+          <div class="brand">Cindy Care</div>
+          <div class="brand-sub" id="brandSub">น้อง Cindy</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="round-btn" id="darkBtn" title="โหมดมืด/สว่าง">🌙</button>
+        <button class="round-btn" id="settingsBtn" title="ตั้งค่า">⚙️</button>
+      </div>
+    </header>
+
+    <main class="views">
+      <!-- ============ HOME / DASHBOARD ============ -->
+      <section class="view active" id="view-home">
+        <!-- greeting -->
+        <div class="hero">
+          <div class="hero-avatar" id="heroAvatar">🐱</div>
+          <div>
+            <div class="hero-greet" id="heroGreet">สวัสดีตอนเช้า</div>
+            <div class="hero-name">Cindy</div>
+            <div class="hero-date" id="heroDate"></div>
+          </div>
+        </div>
+
+        <!-- today's meals -->
+        <section class="block">
+          <div class="block-head"><h2>🍽 มื้อวันนี้</h2><span class="block-sub" id="mealsProgress"></span></div>
+          <div id="todayMeals"></div>
+        </section>
+
+        <!-- daily recommendation -->
+        <section class="block">
+          <div class="block-head"><h2>💡 แนะนำวันนี้</h2></div>
+          <div class="card" id="recCard"></div>
+        </section>
+
+        <!-- nutrition score -->
+        <section class="block">
+          <div class="block-head"><h2>❤️ คะแนนโภชนาการ</h2></div>
+          <div class="card score-card" id="scoreCard"></div>
+        </section>
+
+        <!-- open package -->
+        <section class="block">
+          <div class="block-head"><h2>📦 แพ็คที่เปิดอยู่</h2></div>
+          <div class="card" id="openPackCard"></div>
+        </section>
+
+        <!-- tomorrow -->
+        <section class="block">
+          <div class="block-head"><h2>📅 พรุ่งนี้</h2></div>
+          <div class="card" id="tomorrowCard"></div>
+        </section>
+
+        <!-- AI summary -->
+        <section class="block">
+          <div class="block-head"><h2>🤖 สรุปวันนี้</h2></div>
+          <div class="card ai-card" id="aiCard"></div>
+        </section>
+
+        <!-- running low -->
+        <section class="block">
+          <div class="block-head"><h2>🛒 ใกล้หมด</h2></div>
+          <div class="card" id="lowCard"></div>
+        </section>
+      </section>
+
+      <!-- ============ CALENDAR ============ -->
+      <section class="view" id="view-calendar">
+        <div class="page-head">
+          <button class="round-btn" id="calPrev">‹</button>
+          <h1 class="page-title" id="calLabel">ปฏิทิน</h1>
+          <button class="round-btn" id="calNext">›</button>
+        </div>
+        <div class="card cal-card">
+          <div class="cal-weekdays" id="calWeekdays"></div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+        <div class="card" id="calForecast"></div>
+      </section>
+
+      <!-- ============ FOOD LIBRARY ============ -->
+      <section class="view" id="view-food">
+        <h1 class="page-title">🍱 คลังอาหาร</h1>
+        <div class="seg" id="foodTabs"></div>
+        <div class="row-btns">
+          <button class="btn-primary" id="addFoodBtn">＋ เพิ่มอาหาร</button>
+          <button class="btn-soft" id="batchBtn">＋ หลายรายการ</button>
+        </div>
+        <div class="prod-grid" id="foodGrid"></div>
+      </section>
+
+      <!-- ============ SHOPPING ============ -->
+      <section class="view" id="view-shop">
+        <h1 class="page-title">🛒 รายการซื้อ</h1>
+        <div class="card" id="shopNeed"></div>
+        <div class="card" id="shopStats"></div>
+        <div class="card" id="shopHistory"></div>
+      </section>
+
+      <!-- ============ HEALTH ============ -->
+      <section class="view" id="view-health">
+        <h1 class="page-title">💗 สุขภาพ</h1>
+        <div class="card" id="healthSummary"></div>
+        <div class="card" id="trendCard"></div>
+        <div class="card" id="waterCard"></div>
+        <div class="card">
+          <div class="block-head"><h2>⚖️ น้ำหนัก (กก.)</h2></div>
+          <canvas id="weightChart" height="160"></canvas>
+          <div class="inline-add">
+            <input type="number" step="0.1" id="weightInput" placeholder="เช่น 3.7" />
+            <button class="btn-primary slim" id="addWeightBtn">บันทึก</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="block-head"><h2>🚽 ขับถ่ายวันนี้</h2></div>
+          <div class="poop-row" id="poopRow"></div>
+          <div id="poopHistory" class="mini-log"></div>
+        </div>
+        <div class="card" id="peeCard"></div>
+        <div class="card" id="medCard"></div>
+        <div class="card" id="vetCard"></div>
+      </section>
+    </main>
+
+    <!-- ============ BOTTOM NAV ============ -->
+    <nav class="tabbar">
+      <button class="tab active" data-view="home"><span>🏠</span>วันนี้</button>
+      <button class="tab" data-view="calendar"><span>📅</span>ปฏิทิน</button>
+      <button class="tab" data-view="food"><span>🍱</span>อาหาร</button>
+      <button class="tab" data-view="shop"><span>🛒</span>ช้อป</button>
+      <button class="tab" data-view="health"><span>💗</span>สุขภาพ</button>
+    </nav>
+  </div>
+
+  <!-- ============ MODAL ============ -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modalBox">
+      <button class="modal-x" id="modalClose">✕</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="script.js?v=13"></script>
+</body>
+</html>
