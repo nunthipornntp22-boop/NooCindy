@@ -1,0 +1,767 @@
+﻿/* ============================================================
+   Cindy Care v2 โ€” premium nutrition assistant (vanilla JS)
+   Finish-First rotation ยท Nutrition Score ยท localStorage
+   ============================================================ */
+'use strict';
+
+/* ---------- FOOD DATABASE (เธเธฃเนเธญเธก benefits / เนเธ เธเธเธฒเธเธฒเธฃ / suitable) ---------- */
+const SEED_FOODS = [
+  { id:'hills_cd', name:"Hill's c/d", cat:'wet', complete:true, urinary:true, meals:3, grams:82, kcal100:90, protein:9, fat:5, moisture:78, daysOpen:2,
+    storage:'เนเธเนเธ•เธนเนเน€เธขเนเธ เธเธดเธ”เธชเธเธดเธ— เธเธดเธเธ เธฒเธขเนเธ 2 เธงเธฑเธ', desc:'เธญเธฒเธซเธฒเธฃเน€เธเธตเธขเธเธชเธนเธ•เธฃเธ”เธนเนเธฅเธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐเธฃเธฐเธ”เธฑเธเธเธฃเธตเน€เธกเธตเธขเธก เนเธเธฃเธ•เธตเธเธเธธเธ“เธ เธฒเธเธชเธนเธ เธเธงเธฒเธกเธเธทเนเธเธชเธนเธ',
+    benefits:['เธ”เธนเนเธฅเธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐ','เธฅเธ”เธเธฒเธฃเน€เธเธดเธ”เธเธฅเธถเธ/เธเธดเนเธง','เธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ (Complete)','เธเธงเธฒเธกเธเธทเนเธเธชเธนเธ','เนเธเธฃเธ•เธตเธเธเธฃเธตเน€เธกเธตเธขเธก'], suitable:['urinary'] },
+  { id:'peace', name:'Peace Urinary', cat:'wet', complete:true, urinary:true, meals:3, grams:80, kcal100:85, protein:10, fat:5, moisture:79, daysOpen:2,
+    storage:'เนเธเนเธ•เธนเนเน€เธขเนเธ เธเธดเธเธ เธฒเธขเนเธ 2 เธงเธฑเธ', desc:'เธญเธฒเธซเธฒเธฃเน€เธเธตเธขเธเธ”เธนเนเธฅเธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐ เธเธฃเธเธชเนเธงเธ เน€เธเธดเนเธกเธเธงเธฒเธกเธเธธเนเธกเธเธทเนเธ',
+    benefits:['เธ”เธนเนเธฅเธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐ','เธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ','เน€เธเธดเนเธกเธเนเธณเนเธเธฃเนเธฒเธเธเธฒเธข'], suitable:['urinary'] },
+  { id:'moochi', name:'Moochi', cat:'wet', complete:true, urinary:false, meals:3, grams:70, kcal100:80, protein:10, fat:5, moisture:80, daysOpen:2,
+    storage:'เนเธเนเธ•เธนเนเน€เธขเนเธ เธเธดเธเธ เธฒเธขเนเธ 2 เธงเธฑเธ', desc:'เธญเธฒเธซเธฒเธฃเน€เธเธตเธขเธเธเธฃเธเธชเนเธงเธ เน€เธเธทเนเธญเธเธธเนเธก เธขเนเธญเธขเธเนเธฒเธข',
+    benefits:['เธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ','เธขเนเธญเธขเธเนเธฒเธข','เน€เธเธดเนเธกเธเธงเธฒเธกเธญเธขเธฒเธเธญเธฒเธซเธฒเธฃ'], suitable:['digestive'] },
+  { id:'delisci', name:'Delisci', cat:'wet', complete:true, urinary:false, meals:3, grams:70, kcal100:80, protein:10, fat:5, moisture:80, daysOpen:2,
+    storage:'เนเธเนเธ•เธนเนเน€เธขเนเธ เธเธดเธเธ เธฒเธขเนเธ 2 เธงเธฑเธ', desc:'เธญเธฒเธซเธฒเธฃเน€เธเธตเธขเธเน€เธเธทเนเธญเธเธญเธช เธเธฃเธเธชเนเธงเธ เธซเธญเธกเธเนเธฒเธเธดเธ',
+    benefits:['เธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ','เธซเธญเธกเธเนเธฒเธเธดเธ','เธเธงเธฒเธกเธเธทเนเธเธชเธนเธ'], suitable:[] },
+  { id:'complete_pudding', name:'Complete Pudding', cat:'wet', complete:true, urinary:false, meals:2, grams:50, kcal100:75, protein:8, fat:4, moisture:80, daysOpen:2,
+    storage:'เนเธเนเธ•เธนเนเน€เธขเนเธ เธเธดเธเธ เธฒเธขเนเธ 2 เธงเธฑเธ', desc:'เธเธธเธ”เธ”เธดเนเธเธเธฃเธเธชเนเธงเธ เน€เธเธทเนเธญเน€เธเธตเธขเธเธเธธเนเธก',
+    benefits:['เธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ','เน€เธเธทเนเธญเธเธธเนเธก เธ—เธฒเธเธเนเธฒเธข'], suitable:['digestive'] },
+  { id:'minican', name:'Minican', cat:'wet', complete:true, urinary:false, meals:2, grams:50, kcal100:85, protein:11, fat:6, moisture:78, daysOpen:2,
+    storage:'เนเธเนเธ•เธนเนเน€เธขเนเธ เธเธดเธเธ เธฒเธขเนเธ 2 เธงเธฑเธ', desc:'เธญเธฒเธซเธฒเธฃเธเธฃเธฐเธเนเธญเธเน€เธฅเนเธ เน€เธเธทเนเธญเนเธเนเธ เน€เธชเธฃเธดเธกเนเธเธฃเธ•เธตเธ',
+    benefits:['เธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ','เน€เธชเธฃเธดเธกเนเธเธฃเธ•เธตเธ'], suitable:['protein'] },
+  { id:'bear', name:'Bear Pudding', cat:'wet', complete:false, urinary:false, supplement:true, meals:2, grams:40, kcal100:70, protein:6, fat:3, moisture:80, daysOpen:2,
+    storage:'เนเธเนเธ•เธนเนเน€เธขเนเธ เธเธดเธเธ เธฒเธขเนเธ 2 เธงเธฑเธ', desc:'เธเธธเธ”เธ”เธดเนเธเน€เธชเธฃเธดเธก เธเธฃเธฐเธ•เธธเนเธเธเธงเธฒเธกเธญเธขเธฒเธเธญเธฒเธซเธฒเธฃ (เนเธกเนเนเธเนเธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ)',
+    benefits:['เธเธฃเธฐเธ•เธธเนเธเธเธงเธฒเธกเธญเธขเธฒเธเธญเธฒเธซเธฒเธฃ','เธญเธฒเธซเธฒเธฃเน€เธชเธฃเธดเธก (Supplement)','เนเธกเนเนเธเนเธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ'], suitable:[] },
+  { id:'miso', name:'Miso', cat:'wet', complete:true, urinary:true, meals:1, grams:30, kcal100:80, protein:10, fat:5, moisture:80, daysOpen:1,
+    storage:'เนเธเนเธ•เธนเนเน€เธขเนเธ เธเธดเธเธ เธฒเธขเนเธ 1 เธงเธฑเธ', desc:'เธ–เนเธงเธขเน€เธฅเนเธเธ”เธนเนเธฅเธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐ เธเธฃเธเธชเนเธงเธ',
+    benefits:['เธ”เธนเนเธฅเธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐ','เธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ'], suitable:['urinary'] },
+  { id:'special', name:'The Special Table', cat:'wet', complete:true, urinary:false, meals:1, grams:30, kcal100:90, protein:11, fat:6, moisture:77, daysOpen:1,
+    storage:'เนเธเนเธ•เธนเนเน€เธขเนเธ เธเธดเธเธ เธฒเธขเนเธ 1 เธงเธฑเธ', desc:'เธญเธฒเธซเธฒเธฃเน€เธเธตเธขเธเน€เธเธฃเธ”เธเธฃเธตเน€เธกเธตเธขเธก เธเธณเธฃเธธเธเธฃเนเธฒเธเธเธฒเธขเนเธ”เธขเธฃเธงเธก',
+    benefits:['เธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ','เน€เธเธฃเธ”เธเธฃเธตเน€เธกเธตเธขเธก'], suitable:[] },
+  { id:'push', name:'Push! Strong Body', cat:'wet', complete:true, urinary:false, meals:4, grams:100, kcal100:80, protein:11, fat:4, moisture:82, daysOpen:2,
+    storage:'เนเธเนเธ•เธนเนเน€เธขเนเธ เธเธดเธเธ เธฒเธขเนเธ 2 เธงเธฑเธ', desc:'เธเธญเธเนเธซเธเน Tuna & Shirasu เธเธฃเธเธชเนเธงเธ เน€เธชเธฃเธดเธกเธเธงเธฒเธกเนเธเนเธเนเธฃเธ',
+    benefits:['เธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ','เนเธเธฃเธ•เธตเธเธชเธนเธ','เธเธงเธฒเธกเธเธทเนเธเธชเธนเธ'], suitable:['protein'] },
+  { id:'rc_urinary', name:'Royal Canin Urinary', cat:'dry', complete:true, urinary:true, meals:0, grams:0, gramsPerDay:22, kcal100:360, protein:30, fat:12, moisture:8, daysOpen:45,
+    storage:'เน€เธเนเธเธ—เธตเนเนเธซเนเธ เธเธดเธ”เธชเธเธดเธ—', desc:'เธญเธฒเธซเธฒเธฃเน€เธกเนเธ”เธ”เธนเนเธฅเธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐ เนเธซเน 20โ€“25 เธ./เธงเธฑเธ (เนเธกเน free feeding)',
+    benefits:['เธ”เธนเนเธฅเธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐ','เธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ','เน€เธชเธฃเธดเธกเธเธฒเธฃเธเธเน€เธเธตเนเธขเธง'], suitable:['urinary','weight'] },
+  // soup
+  { id:'pramy', name:'Pramy Broths', cat:'soup', complete:false, supplement:true, meals:0, grams:40, kcal100:30, protein:3, fat:1, moisture:92, daysOpen:1,
+    storage:'เนเธเนเธ•เธนเนเน€เธขเนเธ เธเธดเธเธ เธฒเธขเนเธ 1 เธงเธฑเธ', desc:'เธเธธเธเน€เธเธดเนเธกเธเนเธณ เธเนเธงเธขเธเธณเธฃเธธเธเธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐเนเธฅเธฐเนเธ•', benefits:['เน€เธเธดเนเธกเธเนเธณเนเธเธฃเนเธฒเธเธเธฒเธข','เธ”เธตเธ•เนเธญเธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐ'], suitable:['urinary'] },
+  { id:'peace_soup', name:'Peace Soup', cat:'soup', complete:false, supplement:true, meals:0, grams:40, kcal100:28, protein:3, fat:1, moisture:93, daysOpen:1,
+    storage:'เนเธเนเธ•เธนเนเน€เธขเนเธ เธเธดเธเธ เธฒเธขเนเธ 1 เธงเธฑเธ', desc:'เธเธธเธเนเธช เธขเนเธญเธขเธเนเธฒเธข เน€เธเธดเนเธกเธเนเธณ', benefits:['เน€เธเธดเนเธกเธเนเธณเนเธเธฃเนเธฒเธเธเธฒเธข','เธขเนเธญเธขเธเนเธฒเธข'], suitable:['urinary'] },
+  { id:'moochi_soup', name:'Moochi Soup', cat:'soup', complete:false, supplement:true, meals:0, grams:40, kcal100:35, protein:4, fat:1, moisture:90, daysOpen:1,
+    storage:'เนเธเนเธ•เธนเนเน€เธขเนเธ เธเธดเธเธ เธฒเธขเนเธ 1 เธงเธฑเธ', desc:'เธเธธเธเธเธฃเธตเธกเน€เธเธตเธขเธ เน€เธเธดเนเธกเธเธงเธฒเธกเธญเธขเธฒเธเธญเธฒเธซเธฒเธฃ', benefits:['เน€เธเธดเนเธกเธเนเธณเนเธเธฃเนเธฒเธเธเธฒเธข','เธเธฃเธฐเธ•เธธเนเธเธเธงเธฒเธกเธญเธขเธฒเธเธญเธฒเธซเธฒเธฃ'], suitable:[] },
+  // freeze-dried
+  { id:'bear_grove', name:'Bear Grove (Freeze Dried)', cat:'freeze', complete:false, supplement:true, meals:0, kcal100:350, protein:55, fat:8, moisture:5, daysOpen:60,
+    storage:'เน€เธเนเธเธ—เธตเนเนเธซเนเธ เธเธดเธ”เธชเธเธดเธ—', desc:'เธเธฃเธตเธเธ”เธฃเธฒเธขเน€เธเธทเนเธญเนเธเน 100% เนเธฃเธขเน€เธเธดเนเธกเนเธเธฃเธ•เธตเธ', benefits:['เนเธเธฃเธ•เธตเธเธชเธนเธ','เนเธฃเธขเน€เธเธดเนเธกเธเธงเธฒเธกเธเนเธฒเธเธดเธ'], suitable:['protein'] },
+  { id:'bright_sakura', name:'Bright Sakura (Freeze Dried)', cat:'freeze', complete:false, supplement:true, meals:0, kcal100:350, protein:55, fat:8, moisture:5, daysOpen:60,
+    storage:'เน€เธเนเธเธ—เธตเนเนเธซเนเธ เธเธดเธ”เธชเธเธดเธ—', desc:'เธเธฃเธตเธเธ”เธฃเธฒเธข เธซเธญเธก เน€เธเธดเนเธกเธเธงเธฒเธกเธญเธขเธฒเธเธญเธฒเธซเธฒเธฃ', benefits:['เน€เธเธดเนเธกเธเธงเธฒเธกเธญเธขเธฒเธเธญเธฒเธซเธฒเธฃ','เนเธเธฃเธ•เธตเธเธชเธนเธ'], suitable:[] },
+  // powder
+  { id:'kelly', name:'Kelly & Co', cat:'powder', complete:false, supplement:true, meals:0, daysOpen:90, storage:'เน€เธเนเธเธ—เธตเนเนเธซเนเธ', desc:'เธเธเนเธฃเธขเธเธณเธฃเธธเธเธฃเนเธฒเธเธเธฒเธข', benefits:['เธเธณเธฃเธธเธเธฃเนเธฒเธเธเธฒเธข','เน€เธชเธฃเธดเธกเธเธงเธฒเธกเธญเธขเธฒเธเธญเธฒเธซเธฒเธฃ'], suitable:[] },
+  { id:'uboost', name:'U-Boost', cat:'powder', complete:false, supplement:true, meals:0, daysOpen:90, storage:'เน€เธเนเธเธ—เธตเนเนเธซเนเธ', desc:'เธเธเนเธฃเธขเธเธณเธฃเธธเธเธเธดเธงเธซเธเธฑเธ+เธ เธนเธกเธดเธเธธเนเธกเธเธฑเธ', benefits:['เธเธณเธฃเธธเธเธเธดเธงเธซเธเธฑเธ/เธเธ','เน€เธชเธฃเธดเธกเธ เธนเธกเธดเธเธธเนเธกเธเธฑเธ'], suitable:[] },
+  { id:'gager', name:'Gager', cat:'powder', complete:false, supplement:true, meals:0, daysOpen:90, storage:'เน€เธเนเธเธ—เธตเนเนเธซเนเธ', desc:'เธเธเนเธฃเธขเธเธณเธฃเธธเธเธเนเธญ/เธเธฃเธฐเธ”เธนเธ', benefits:['เธเธณเธฃเธธเธเธเนเธญ/เธเธฃเธฐเธ”เธนเธ'], suitable:[] },
+  // treat (alternate days)
+  { id:'vf_core', name:'VF Core', cat:'treat', complete:false, supplement:true, meals:0, alt:'even', daysOpen:1, storage:'เธเธดเธ”เธชเธเธดเธ—', desc:'เธเธเธกเนเธกเธงเน€เธฅเธตเธข เน€เธชเธฃเธดเธกเนเธ เธเธเธฒเธเธฒเธฃ (เธงเธฑเธเธเธนเน)', benefits:['เน€เธชเธฃเธดเธกเนเธ เธเธเธฒเธเธฒเธฃ','เนเธเนเน€เธเนเธเธฃเธฒเธเธงเธฑเธฅ (เธงเธฑเธเธฅเธฐ 1)'], suitable:[] },
+  { id:'vetology', name:'Vetology', cat:'treat', complete:false, supplement:true, meals:0, alt:'odd', daysOpen:1, storage:'เธเธดเธ”เธชเธเธดเธ—', desc:'เธเธเธกเนเธกเธงเน€เธฅเธตเธข เน€เธชเธฃเธดเธกเธ เธนเธกเธดเธเธธเนเธกเธเธฑเธ (เธงเธฑเธเธเธตเน)', benefits:['เน€เธชเธฃเธดเธกเธ เธนเธกเธดเธเธธเนเธกเธเธฑเธ','เนเธเนเน€เธเนเธเธฃเธฒเธเธงเธฑเธฅ (เธงเธฑเธเธฅเธฐ 1)'], suitable:[] },
+];
+
+const CAT = { wet:'๐ฅซ เน€เธเธตเธขเธ', dry:'๐พ เน€เธกเนเธ”', soup:'๐ฒ เธเธธเธ', freeze:'โ๏ธ เธเธฃเธตเธเธ”เธฃเธฒเธข', powder:'โจ เธเธ', treat:'๐ช เธเธเธก' };
+const CATC = { wet:'#ff8fb0', dry:'#e0a84f', soup:'#5fa6d6', freeze:'#a98fd6', powder:'#5fc49a', treat:'#ef9a72' };
+const CLABEL = { wet:'เน€เธเธตเธขเธ', dry:'เน€เธกเนเธ”', soup:'เธเธธเธ', freeze:'เธเธฃเธตเธเธ”เธฃเธฒเธข', powder:'เธเธ', treat:'เธเธเธก' };
+const CAT_ORDER = ['wet','dry','soup','freeze','powder','treat'];
+const SUIT_LABEL = { urinary:'เธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐ', hairball:'เธเนเธญเธเธเธ', digestive:'เธฃเธฐเธเธเธขเนเธญเธข', weight:'เธเธงเธเธเธธเธกเธเนเธณเธซเธเธฑเธ', protein:'เนเธเธฃเธ•เธตเธเธชเธนเธ' };
+const MEAL_SLOTS = [ {key:'morning',label:'เธกเธทเนเธญเน€เธเนเธฒ',emoji:'๐…'}, {key:'lunch',label:'เธกเธทเนเธญเธเธฅเธฒเธเธงเธฑเธ',emoji:'โ€๏ธ'}, {key:'dinner',label:'เธกเธทเนเธญเน€เธขเนเธ',emoji:'๐'} ];
+const SOURCES = ['Shopee','Lazada','TikTok Shop','เธฃเนเธฒเธเธชเธฑเธ•เธงเนเน€เธฅเธตเนเธขเธ','เธเธฅเธดเธเธดเธ/เธฃเธ.เธชเธฑเธ•เธงเน','Facebook','Line','เธญเธทเนเธเน'];
+
+/* ---------- STATE ---------- */
+const KEY = 'cindyCare.v3';
+function fresh() {
+  return {
+    profile: { name:'Cindy', weight:3.7, factor:1.2, dark:false, photo:'', mealTimes:['08:00','13:00','18:00'] },
+    foods: JSON.parse(JSON.stringify(SEED_FOODS)),
+    inventory: {},        // foodId: { packs, price, source, buyDate }
+    activePack: null,     // { foodId, total, remaining, openedAt }
+    lastFinished: null,
+    logs: {},             // dk: { morning:{done,foodId,kcal,grams,time}, ... }
+    checks: {},           // dk_slot or dk_day : { treat, med_<id> }
+    notes: {},            // dk: text
+    weights: [{date:todayKey(), kg:3.7}],
+    poops: {}, pees: {}, water: {}, meds: [], vetVisits: [], purchases: [],
+  };
+}
+let state = load();
+function load() { try { const r = localStorage.getItem(KEY); if (!r) return fresh(); const s = Object.assign(fresh(), JSON.parse(r)); if (!s.foods || !s.foods.length) s.foods = JSON.parse(JSON.stringify(SEED_FOODS)); return s; } catch (e) { return fresh(); } }
+function save() { localStorage.setItem(KEY, JSON.stringify(state)); cloudPush(); }
+
+/* ---------- Cloud Sync state (เน€เธเนเธเนเธขเธเธเธฒเธ state เธ—เธตเนเธเธดเธเธเน) ---------- */
+let cloudReady=false, cloudDoc=null, applyingRemote=false, pushTimer=null;
+const deviceId = (()=>{ let id=localStorage.getItem('cc_device'); if(!id){ id='d'+Math.random().toString(36).slice(2); localStorage.setItem('cc_device',id); } return id; })();
+function getCloud(){ try{ return JSON.parse(localStorage.getItem('cc_cloud')||'null'); }catch(e){ return null; } }
+function setCloud(c){ localStorage.setItem('cc_cloud', JSON.stringify(c)); }
+
+/* ---------- helpers ---------- */
+function todayKey(d = new Date()) { const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), a=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${a}`; }
+function dkPretty(dk){ const [y,m,d]=dk.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('th-TH',{day:'numeric',month:'short'}); }
+function addDaysKey(n){ const d=new Date(); d.setDate(d.getDate()+n); return todayKey(d); }
+const foods = () => state.foods;
+const findFood = id => state.foods.find(f => f.id === id);
+const inv = id => state.inventory[id] || { packs:0 };
+function daysSince(dk){ if(!dk)return 0; const [y,m,d]=dk.split('-').map(Number); const t=new Date(); t.setHours(0,0,0,0); return Math.floor((t-new Date(y,m-1,d))/86400000); }
+// เธเธดเธเนเธ”เนเธญเธตเธเธเธตเนเธงเธฑเธ: เนเธเธเธเธฃเธฑเธก = เธเธฃเธฑเธกเธเธเน€เธซเธฅเธทเธญรทเธเธฃเธฑเธกเธ•เนเธญเธงเธฑเธ ยท เนเธเธเธกเธทเนเธญ = (เธเธดเนเธร—เธกเธทเนเธญ)/3 (เนเธกเนเธ•เธดเธ”เธฅเธ)
+function isGramFood(f){ return f.dry || f.byGram || (f.gramsPerDay && !f.meals); }
+function foodDaysLeft(f){
+  if(isGramFood(f)){ const g=inv(f.id).grams||0; const gpd=f.gramsPerDay||20; return gpd>0?Math.max(0,Math.floor(g/gpd)):0; }
+  if(f.meals){ return Math.max(0,Math.floor((inv(f.id).packs||0)*f.meals/3)); }
+  return null; // เธญเธฒเธซเธฒเธฃเน€เธชเธฃเธดเธก (เธเธฃเธตเธเธ”เธฃเธฒเธข/เธเธ/เธเธเธก) เธเธฑเธเน€เธเนเธเธเธดเนเธ
+}
+// เธเนเธญเธกเธนเธฅเนเธเธฅเนเธซเธกเธ” (เธเธฃเธญเธเธเธฅเธธเธกเธ—เธฑเนเธเนเธเธเธงเธฑเธ เนเธฅเธฐเนเธเธเธเธฑเธเธเธดเนเธเธชเธณเธซเธฃเธฑเธเธเธญเธเน€เธชเธฃเธดเธก)
+function lowInfo(f){
+  const dl=foodDaysLeft(f);
+  if(dl!=null) return { sort:dl, low:dl<=4, out:dl<=0, label: dl<=0?'เธซเธกเธ”':('~'+dl+' เธงเธฑเธ') };
+  const p=inv(f.id).packs||0;
+  return { sort:100+p, low:p<=1, out:p<=0, label: p<=0?'เธซเธกเธ”':('เน€เธซเธฅเธทเธญ '+p) };
+}
+function targetKcal(){ const kg=state.profile.weight||3.7; return Math.round(70*Math.pow(kg,0.75)*(state.profile.factor||1.2)); }
+function gramsPerMeal(f){ return f.meals ? Math.round(f.grams/f.meals) : 0; }
+function kcalPerMeal(f){ if(!f||!f.meals||!f.kcal100) return 0; return Math.round((f.grams/f.meals/100)*f.kcal100); }
+function todaysTreat(d=new Date()){ const even=d.getDate()%2===0; return state.foods.find(f=>f.cat==='treat'&&f.alt===(even?'even':'odd')); }
+function powderOfDay(d=new Date()){ const ps=foods().filter(f=>f.cat==='powder'); const sp=ps.filter(f=>(inv(f.id).packs||0)>0); const pool=sp.length?sp:ps; return pool.length?pool[d.getDate()%pool.length]:null; }
+
+/* เธฃเธนเธเธชเธดเธเธเนเธฒ: เนเธเนเธฃเธนเธเธเธฃเธดเธ (img) เธ–เนเธฒเนเธกเนเธกเธต โ’ placeholder เธเธฃเธตเน€เธกเธตเธขเธก (เธญเธฑเธเธฉเธฃเธขเนเธญ) */
+function foodSrc(f){ return (f.img && f.img.trim()) ? f.img.trim() : `assets/${f.id}.png`; }
+function pic(f, cls=''){
+  const letter = ((f.name||'?').trim()[0] || '๐พ').replace(/['"\\]/g,'');
+  const alt = (f.name||'').replace(/"/g,'');
+  return `<img class="${cls}" src="${foodSrc(f)}" alt="${alt}" loading="lazy" onerror="imgErr(this,'${letter}')">`;
+}
+window.imgErr = (el, letter) => { const s = document.createElement('span'); s.className = 'pcard-ph'; s.textContent = letter || '๐พ'; el.replaceWith(s); };
+
+/* ---------- FINISH-FIRST ---------- */
+function mealFoods(){ return foods().filter(f => f.meals > 0); }
+function canOpen(){ return !state.activePack || state.activePack.remaining <= 0; }
+function openPack(id){
+  const f = findFood(id); if (!f || !f.meals) return;
+  if (!canOpen()) { toast('เธเธดเธเนเธเนเธเธ—เธตเนเน€เธเธดเธ”เธญเธขเธนเนเนเธซเนเธซเธกเธ”เธเนเธญเธ'); return; }
+  if ((inv(id).packs||0) <= 0) { toast('เนเธกเนเธกเธตเธชเธ•เนเธญเธ เน€เธเธดเนเธกเธเนเธญเธเธเธฐ'); return; }
+  state.inventory[id].packs -= 1;
+  state.activePack = { foodId:id, total:f.meals, remaining:f.meals, openedAt:todayKey() };
+  save(); toast(`เน€เธเธดเธ” ${f.name} เนเธฅเนเธง`); closeModal(); renderAll();
+}
+function autoOpenNext(){
+  const cand = mealFoods().filter(f => (inv(f.id).packs||0) > 0);
+  if (!cand.length) return false;
+  cand.sort((a,b)=> (b.complete?1:0)-(a.complete?1:0) || (inv(b.id).packs)-(inv(a.id).packs));
+  const pick = cand.find(f => f.id !== state.lastFinished) || cand[0];
+  state.inventory[pick.id].packs -= 1;
+  state.activePack = { foodId:pick.id, total:pick.meals, remaining:pick.meals, openedAt:todayKey() };
+  return true;
+}
+function consumeMeal(){
+  if (!state.activePack) return;
+  state.activePack.remaining -= 1;
+  if (state.activePack.remaining <= 0) { state.lastFinished = state.activePack.foodId; state.activePack = null; }
+}
+
+// เธเธดเธงเธกเธทเนเธญเธญเธฒเธซเธฒเธฃเธ•เธฒเธก Finish-First (เนเธกเนเนเธเน state) โ€” เธเธทเธ array เธเธญเธ foodId
+function buildQueue(){
+  const q = [];
+  if (state.activePack && state.activePack.remaining > 0) for (let i=0;i<state.activePack.remaining;i++) q.push(state.activePack.foodId);
+  // เธเธณเธฅเธญเธเธฅเธณเธ”เธฑเธเน€เธเธดเธ”เธ–เธฑเธ”เนเธ (rotate)
+  const stock = {}; mealFoods().forEach(f => stock[f.id] = inv(f.id).packs||0);
+  let last = state.lastFinished;
+  let guard = 0;
+  while (guard++ < 200) {
+    const cand = mealFoods().filter(f => stock[f.id] > 0);
+    if (!cand.length) break;
+    cand.sort((a,b)=> (b.complete?1:0)-(a.complete?1:0) || stock[b.id]-stock[a.id]);
+    const pick = cand.find(f => f.id !== last) || cand[0];
+    stock[pick.id]--; last = pick.id;
+    for (let i=0;i<pick.meals;i++) q.push(pick.id);
+  }
+  return q;
+}
+function todayPlan(){
+  const day = state.logs[todayKey()] || {}; const q = buildQueue(); let qi = 0;
+  return MEAL_SLOTS.map(s => {
+    const e = day[s.key];
+    if (e && e.done) return { slot:s, foodId:e.foodId, done:true, kcal:e.kcal };
+    return { slot:s, foodId:q[qi++]||null, done:false };
+  });
+}
+function tomorrowPlan(){
+  const day = state.logs[todayKey()] || {};
+  const pending = MEAL_SLOTS.filter(s => !(day[s.key] && day[s.key].done)).length;
+  const q = buildQueue(); let qi = pending;
+  return MEAL_SLOTS.map(s => ({ slot:s, foodId:q[qi++]||null }));
+}
+
+function logMeal(slotKey){
+  if (!state.activePack || state.activePack.remaining <= 0) autoOpenNext();
+  if (!state.activePack) { toast('เนเธกเนเธกเธตเธญเธฒเธซเธฒเธฃเนเธเธชเธ•เนเธญเธ โ€” เน€เธเธดเนเธกเธ—เธตเนเธซเธเนเธฒเธญเธฒเธซเธฒเธฃ'); return; }
+  const f = findFood(state.activePack.foodId);
+  const dk = todayKey();
+  state.logs[dk] = state.logs[dk] || {};
+  state.logs[dk][slotKey] = { done:true, foodId:f.id, kcal:kcalPerMeal(f), grams:gramsPerMeal(f), time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}) };
+  consumeMeal(); save(); toast('เธเธฑเธเธ—เธถเธเธกเธทเนเธญเนเธฅเนเธง ๐ฝ'); renderAll();
+}
+function undoMeal(slotKey){
+  const dk = todayKey(), e = (state.logs[dk]||{})[slotKey]; if (!e) return;
+  if (state.activePack && state.activePack.foodId === e.foodId && state.activePack.remaining < state.activePack.total) state.activePack.remaining++;
+  else if (!state.activePack) { const f=findFood(e.foodId); if(f&&f.meals) state.activePack={foodId:e.foodId,total:f.meals,remaining:1,openedAt:dk}; }
+  delete state.logs[dk][slotKey]; save(); toast('เธขเธเน€เธฅเธดเธเนเธฅเนเธง'); renderAll();
+}
+
+/* ---------- NUTRITION SCORE ---------- */
+function computeNutrition(dk){
+  const day = state.logs[dk] || {};
+  const eaten = MEAL_SLOTS.map(s=>day[s.key]).filter(e=>e&&e.done).map(e=>findFood(e.foodId)).filter(Boolean);
+  const dayck = state.checks[dk+'_day'] || {};
+  if (!eaten.length) return { score:0, hydration:0, protein:0, urinary:0, complete:0, vitamin:0, kcal:0, eatenCount:0 };
+  const avg = arr => arr.reduce((a,b)=>a+b,0)/arr.length;
+  const hydration = Math.round(Math.min(100, avg(eaten.map(f=>(f.moisture||0)))/80*100));
+  const protein = Math.round(Math.min(100, avg(eaten.map(f=>(f.protein||0)))/10*100));
+  const urinary = Math.round((eaten.filter(f=>f.urinary).length/eaten.length)*100);
+  const complete = Math.round((eaten.filter(f=>f.complete).length/eaten.length)*100);
+  const vitamin = dayck.treat || eaten.some(f=>f.supplement) ? 100 : 45;
+  const score = Math.round((hydration*0.25 + protein*0.2 + urinary*0.25 + complete*0.2 + vitamin*0.1));
+  const kcal = MEAL_SLOTS.map(s=>day[s.key]).filter(e=>e&&e.done).reduce((a,e)=>a+(e.kcal||0),0);
+  return { score, hydration, protein, urinary, complete, vitamin, kcal, eatenCount:eaten.length };
+}
+function aiSummary(n){
+  if (!n.eatenCount) return { lines:['เธขเธฑเธเนเธกเนเนเธ”เนเธเธฑเธเธ—เธถเธเธกเธทเนเธญเธงเธฑเธเธเธตเน'], tip:'เน€เธฃเธดเนเธกเธเธฒเธเธกเธทเนเธญเน€เธเนเธฒเนเธ”เนเน€เธฅเธข ๐ฝ' };
+  const ok = []; if (n.complete>=60) ok.push('เธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ'); if (n.urinary>=50) ok.push('เธ”เธนเนเธฅเธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐ'); if (n.hydration>=75) ok.push('เธเธงเธฒเธกเธเธทเนเธเธชเธนเธ'); if (n.protein>=70) ok.push('เนเธเธฃเธ•เธตเธเน€เธเธตเธขเธเธเธญ');
+  let tip = 'เนเธ เธเธเธฒเธเธฒเธฃเธงเธฑเธเธเธตเนเธ”เธตเธกเธฒเธ ๐';
+  if (n.hydration < 70) tip = 'เธเธงเธฒเธกเธเธธเนเธกเธเธทเนเธเธเนเธญเธขเนเธเธเธดเธ” โ€” เน€เธเธดเนเธกเธเธธเธ/เธเนเธณ ~15 เธกเธฅ.';
+  else if (n.urinary < 50) tip = 'เน€เธเนเธเธชเธนเธ•เธฃเธ”เธนเนเธฅเธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐเน€เธเธดเนเธกเธญเธตเธเธกเธทเนเธญ';
+  else if (n.complete < 60) tip = 'เน€เธเธดเนเธกเธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ (Complete) เธญเธตเธเธซเธเนเธญเธข';
+  return { lines: ok.length?ok:['เนเธ”เนเธฃเธฑเธเธชเธฒเธฃเธญเธฒเธซเธฒเธฃเธเธฒเธเธชเนเธงเธ'], tip };
+}
+
+/* ---------- NAV ---------- */
+function showView(v){ document.querySelectorAll('.view').forEach(x=>x.classList.remove('active')); document.getElementById('view-'+v)?.classList.add('active'); document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===v)); window.scrollTo({top:0,behavior:'smooth'}); }
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
+
+/* ---------- RENDER ALL ---------- */
+function renderAll(){ applyTheme(); renderHome(); renderCalendar(); renderFood(); renderShop(); renderHealth(); }
+
+/* ===== HOME ===== */
+function renderHome(){
+  const p = state.profile;
+  const h = new Date().getHours();
+  const greet = h<11?'เธชเธงเธฑเธชเธ”เธตเธ•เธญเธเน€เธเนเธฒ โ€๏ธ':(h<17?'เธชเธงเธฑเธชเธ”เธตเธ•เธญเธเธเนเธฒเธข ๐ค':'เธชเธงเธฑเธชเธ”เธตเธ•เธญเธเธเนเธณ ๐');
+  document.getElementById('heroGreet').textContent = greet;
+  document.getElementById('heroDate').textContent = new Date().toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long'});
+  document.querySelector('.hero-name').textContent = p.name;
+  document.getElementById('brandSub').textContent = 'เธเนเธญเธ '+p.name;
+  const catImg = p.photo ? `<img src="${p.photo}" alt="">` : '๐ฑ';
+  document.getElementById('heroAvatar').innerHTML = catImg;
+  document.getElementById('catAvatar').innerHTML = catImg;
+
+  // today meals
+  const plan = todayPlan();
+  const doneCount = plan.filter(m=>m.done).length;
+  document.getElementById('mealsProgress').textContent = `${doneCount}/3 เธกเธทเนเธญ`;
+  const times = p.mealTimes || ['08:00','13:00','18:00'];
+  const powderToday = powderOfDay();
+  document.getElementById('todayMeals').innerHTML = plan.map((m,i)=>{
+    const f = m.foodId ? findFood(m.foodId) : null;
+    return `<div class="meal ${m.done?'done':''}">
+      <div class="meal-thumb">${f?pic(f):'<span class="pcard-ph">๐ฝ</span>'}</div>
+      <div class="meal-info">
+        <div class="meal-when">${m.slot.emoji} ${m.slot.label} ยท ${times[i]}${i===0&&powderToday?' ยท โจ เนเธฃเธข '+powderToday.name:''}</div>
+        <div class="meal-food">${f?f.name:'โ€” เธขเธฑเธเนเธกเนเธกเธตเธญเธฒเธซเธฒเธฃ'}</div>
+        <div class="meal-kcal">${m.done?'เธเธดเธเนเธฅเนเธง '+(m.kcal||0)+' kcal':(f?'~'+kcalPerMeal(f)+' kcal':'เน€เธเธดเนเธกเธญเธฒเธซเธฒเธฃเนเธเธชเธ•เนเธญเธ')}</div>
+      </div>
+      ${m.done
+        ? `<button class="done-btn is-done" onclick="undoMeal('${m.slot.key}')">โ“</button>`
+        : `<button class="done-btn" onclick="logMeal('${m.slot.key}')">เธเธดเธเนเธฅเนเธง</button>`}
+    </div>`;
+  }).join('');
+
+  renderRecommend();
+
+  // nutrition score
+  const n = computeNutrition(todayKey());
+  const C = 2*Math.PI*48;
+  const off = C*(1-n.score/100);
+  const col = n.score>=75?'var(--good)':(n.score>=45?'var(--gold)':'var(--danger)');
+  const bar = (label,val,c)=>`<div class="sbar-row"><div class="sbar-top"><span>${label}</span><span>${val}</span></div><div class="sbar-track"><div class="sbar-fill" style="width:${val}%;background:${c}"></div></div></div>`;
+  document.getElementById('scoreCard').innerHTML = `
+    <div class="ring">
+      <svg width="110" height="110"><circle cx="55" cy="55" r="48" stroke="var(--line)" stroke-width="11" fill="none"/>
+      <circle cx="55" cy="55" r="48" stroke="${col}" stroke-width="11" fill="none" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}"/></svg>
+      <div class="ring-num"><b>${n.score}</b><small>/100</small></div>
+    </div>
+    <div class="score-bars">
+      ${bar('๐’ง เธเธงเธฒเธกเธเธธเนเธกเธเธทเนเธ',n.hydration,'var(--blue-deep)')}
+      ${bar('๐ฅฉ เนเธเธฃเธ•เธตเธ',n.protein,'var(--pink-deep)')}
+      ${bar('๐ฉบ Urinary',n.urinary,'var(--blue)')}
+      ${bar('๐ฑ เธเธฃเธเธชเนเธงเธ',n.complete,'var(--good)')}
+      ${bar('โจ เธงเธดเธ•เธฒเธกเธดเธ/เน€เธชเธฃเธดเธก',n.vitamin,'var(--lav)')}
+    </div>`;
+
+  // open package
+  const op = document.getElementById('openPackCard');
+  if (state.activePack){
+    const f = findFood(state.activePack.foodId); const eaten = state.activePack.total-state.activePack.remaining;
+    const pct = Math.round(eaten/state.activePack.total*100);
+    const since=daysSince(state.activePack.openedAt); const safe=f.daysOpen||3; const left=safe-since;
+    const warn = left<=0
+      ? `<div class="open-warn">โ ๏ธ เน€เธเธดเธ”เธกเธฒ ${since} เธงเธฑเธ โ€” เน€เธเธดเธ ${safe} เธงเธฑเธเนเธฅเนเธง เธเธงเธฃเธ—เธดเนเธ เนเธกเนเธเธงเธฃเนเธซเนเธเธดเธเธ•เนเธญ</div>`
+      : `<div class="open-note">เน€เธเธดเธ”เธกเธฒ ${since} เธงเธฑเธ ยท เธเธงเธฃเธเธดเธเธซเธกเธ”เธ เธฒเธขเนเธเธญเธตเธ <b>${left} เธงเธฑเธ</b> (เน€เธเนเธเนเธ”เน ${safe} เธงเธฑเธ)</div>`;
+    op.innerHTML = `<div class="pack-head"><div class="pack-thumb">${pic(f)}</div><div><div class="meal-food">${f.name}</div><div class="meal-kcal">เน€เธเธดเธ”เน€เธกเธทเนเธญ ${dkPretty(state.activePack.openedAt)}</div></div></div>
+      <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <div class="prog-meta"><span>เน€เธซเธฅเธทเธญ <b>${state.activePack.remaining}</b>/${state.activePack.total} เธกเธทเนเธญ</span><span>${pct}%</span></div>
+      ${warn}`;
+  } else op.innerHTML = `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเนเธเนเธเธ—เธตเนเน€เธเธดเธ” โ€” เธเธ” "เธเธดเธเนเธฅเนเธง" เธซเธฃเธทเธญเน€เธเธดเธ”เธ—เธตเนเธซเธเนเธฒเธญเธฒเธซเธฒเธฃ</div>`;
+
+  // tomorrow (เธฃเธฒเธขเธกเธทเนเธญ + เนเธฃเธขเธเธ + เธเธเธก)
+  const times2 = p.mealTimes || ['08:00','13:00','18:00'];
+  const tomD = new Date(); tomD.setDate(tomD.getDate()+1);
+  const powders2 = foods().filter(f=>f.cat==='powder'); const sp2 = powders2.filter(f=>(inv(f.id).packs||0)>0); const pool2 = sp2.length?sp2:powders2;
+  const pw2 = pool2.length ? pool2[tomD.getDate()%pool2.length] : null;
+  const tt2 = todaysTreat(tomD);
+  document.getElementById('tomorrowCard').innerHTML = tomorrowPlan().map((m,i)=>{ const f=m.foodId?findFood(m.foodId):null;
+    return `<div class="mini-meal"><span class="mm-when">${m.slot.emoji} ${m.slot.label} ${times2[i]}</span>${f?`<div class="mm-thumb">${pic(f)}</div><span>${f.name}</span>`:'<span style="color:var(--ink-soft)">โ€” เน€เธเธดเนเธกเธญเธฒเธซเธฒเธฃเนเธเธเธฅเธฑเธ</span>'}</div>`; }).join('')
+    + `<div class="rec-sub" style="margin-top:10px;padding-top:9px;border-top:1px solid var(--line)">โจ เนเธฃเธขเธเธ: <b>${pw2?pw2.name:'โ€”'}</b> (เธกเธทเนเธญเน€เธเนเธฒ ${times2[0]}) ยท ๐ช เธเธเธก: <b>${tt2?tt2.name:'โ€”'}</b> (~15:00) <span style="opacity:.7">เธงเธฑเธเธฅเธฐ 1</span></div>`;
+
+  // AI
+  const ai = aiSummary(n);
+  document.getElementById('aiCard').innerHTML = `${ai.lines.map(l=>`<div class="ai-line"><span class="chip-ok">โ“</span> ${l}</div>`).join('')}<div class="ai-line tip">๐’ก ${ai.tip}</div>`;
+
+  // running low
+  const low = foods().filter(f=>(inv(f.id).packs||inv(f.id).grams||f.meals||f.gramsPerDay)&&lowInfo(f).low);
+  document.getElementById('lowCard').innerHTML = low.length
+    ? low.sort((a,b)=>lowInfo(a).sort-lowInfo(b).sort).map(f=>{ const li=lowInfo(f); return `<div class="low-row">${f.name}<span class="ls ${li.out?'out':'low'}">${li.label}</span></div>`; }).join('')
+    : '<div class="empty">เธชเธ•เนเธญเธเน€เธเธตเธขเธเธเธญ ๐‘</div>';
+}
+
+/* เนเธเธฐเธเธณเธเธฃเธฐเธเธณเธงเธฑเธ: เธกเธทเนเธญเธซเธฅเธฑเธ + เธเธเนเธฃเธข + เธเธเธก */
+function renderRecommend(){
+  const el = document.getElementById('recCard'); if (!el) return;
+  const ap = state.activePack ? findFood(state.activePack.foodId) : null;
+  const plan = todayPlan(); const pending = plan.find(m=>!m.done&&m.foodId);
+  const mainF = ap || (pending ? findFood(pending.foodId) : null);
+  const times = state.profile.mealTimes || ['08:00','13:00','18:00'];
+  const powder = powderOfDay();
+  const treat = todaysTreat();
+  const budget = Math.round(targetKcal()*0.10);
+  const treatTime = '15:00'; // เธเนเธงเธเธเนเธฒเธข เธฃเธฐเธซเธงเนเธฒเธเธกเธทเนเธญ
+  const dayck = state.checks[todayKey()+'_day'] || {};
+  el.innerHTML = `
+    <div class="rec"><span>๐ฝ</span><div><b>เธกเธทเนเธญเธซเธฅเธฑเธ:</b> ${mainF?mainF.name:'โ€” เน€เธเธดเนเธกเธญเธฒเธซเธฒเธฃเนเธเธเธฅเธฑเธ'} ${mainF&&mainF.urinary?'ยท Urinary ๐‘':''}<div class="rec-sub">เน€เธเนเธเธญเธฒเธซเธฒเธฃเน€เธเธตเธขเธเธเธฃเธเธชเนเธงเธ เธเธฃเธ 3 เธกเธทเนเธญ (เธ”เธนเน€เธงเธฅเธฒเนเธ•เนเธฅเธฐเธกเธทเนเธญเธ”เนเธฒเธเธเธ)</div></div></div>
+    <div class="rec"><span>โจ</span><div><b>เนเธฃเธขเธเธ:</b> ${powder?powder.name:'โ€” เธขเธฑเธเนเธกเนเธกเธตเธเธเนเธเธเธฅเธฑเธ'} <span class="rec-tag">เน€เธเธเธฒเธฐเธกเธทเนเธญเน€เธเนเธฒ ${times[0]} ยท เธงเธฑเธเธฅเธฐ 1</span><div class="rec-sub">เนเธฃเธขเธกเธทเนเธญเน€เธ”เธตเธขเธงเธเธญ <b>เนเธกเนเธ•เนเธญเธเธ—เธธเธเธกเธทเนเธญ</b>${powder?(' ยท '+((powder.benefits&&powder.benefits[0])||'')):''}</div></div></div>
+    <div class="rec"><span>๐ช</span><div><b>เธเธเธก:</b> ${treat?treat.name:'โ€”'} <span class="rec-tag">เนเธซเน ~${treatTime} ยท เธงเธฑเธเธฅเธฐ 1</span> <button class="treat-chk ${dayck.treat?'on':''}" onclick="toggleTreatDone()">${dayck.treat?'โ“ เนเธซเนเนเธฅเนเธง':'เนเธซเนเนเธฅเนเธง?'}</button><div class="rec-sub">เนเธซเนเธเนเธงเธเธเนเธฒเธขเธฃเธฐเธซเธงเนเธฒเธเธกเธทเนเธญ เนเธกเนเน€เธเธดเธ 10% เธเธญเธเนเธเธฅ (~${budget} kcal)</div></div></div>`;
+}
+
+/* ===== CALENDAR ===== */
+let calY, calM; (()=>{ const d=new Date(); calY=d.getFullYear(); calM=d.getMonth(); })();
+const MONTHS=['เธกเธเธฃเธฒเธเธก','เธเธธเธกเธ เธฒเธเธฑเธเธเน','เธกเธตเธเธฒเธเธก','เน€เธกเธฉเธฒเธขเธ','เธเธคเธฉเธ เธฒเธเธก','เธกเธดเธ–เธธเธเธฒเธขเธ','เธเธฃเธเธเธฒเธเธก','เธชเธดเธเธซเธฒเธเธก','เธเธฑเธเธขเธฒเธขเธ','เธ•เธธเธฅเธฒเธเธก','เธเธคเธจเธเธดเธเธฒเธขเธ','เธเธฑเธเธงเธฒเธเธก'];
+function renderCalendar(){
+  document.getElementById('calLabel').textContent = `${MONTHS[calM]} ${calY+543}`;
+  document.getElementById('calWeekdays').innerHTML = ['เธญเธฒ','เธ','เธญ','เธ','เธเธค','เธจ','เธช'].map(d=>`<div class="cal-wd">${d}</div>`).join('');
+  const startWd = new Date(calY,calM,1).getDay(); const dim = new Date(calY,calM+1,0).getDate(); const tk=todayKey();
+  const proj = projectByDate();
+  const shortFood = f => { if(!f) return ''; const w=(f.name||'').replace(/[!&]/g,'').trim().split(' ')[0]; return w.length>9?w.slice(0,9):w; };
+  let cells=''; for(let i=0;i<startWd;i++) cells+='<div class="cal-cell empty-cell"></div>';
+  for(let d=1;d<=dim;d++){
+    const dk=todayKey(new Date(calY,calM,d)); const isToday=dk===tk; const isPast=dk<tk;
+    const day=state.logs[dk]||{}; const dots=MEAL_SLOTS.map(s=>`<span class="${day[s.key]&&day[s.key].done?'eaten':''}"></span>`).join('');
+    const n=computeNutrition(dk); const sc = n.eatenCount?`<span class="cal-score">${n.score}</span>`:'';
+    // เธเธทเนเธญเธญเธฒเธซเธฒเธฃเธซเธฅเธฑเธเธเธญเธเธงเธฑเธ (เธญเธ”เธตเธ•=เธ—เธตเนเธเธดเธเธเธฃเธดเธ / เธงเธฑเธเธเธตเน+เธญเธเธฒเธเธ•=เนเธเธ)
+    let fid=null; const e=MEAL_SLOTS.map(s=>day[s.key]).find(x=>x&&x.done); if(e)fid=e.foodId; if(!fid&&proj[dk])fid=proj[dk].find(Boolean);
+    const fLbl = fid?shortFood(findFood(fid)):'';
+    cells+=`<div class="cal-cell ${isToday?'today':''} ${isPast?'past':''}" onclick="openDay('${dk}')">
+      <span class="cal-date">${d}</span>${fLbl?`<span class="cal-food" style="background:${CATC[findFood(fid).cat]||'var(--pink)'};color:#fff">${fLbl}</span>`:''}<div class="cal-meals">${dots}</div>${sc}</div>`;
+  }
+  document.getElementById('calGrid').innerHTML = cells;
+  // forecast
+  const q = buildQueue(); const days = Math.floor(q.length/3);
+  document.getElementById('calForecast').innerHTML = `<div class="block-head"><h2>๐’ เธเธฒเธ”เธเธฒเธฃเธ“เน</h2></div>
+    <div class="empty" style="padding:6px 0">เธญเธฒเธซเธฒเธฃเธ—เธตเนเธกเธตเธเธดเธเนเธ”เนเธญเธตเธ ~<b style="color:var(--pink-deep)">${days} เธงเธฑเธ</b> (${q.length} เธกเธทเนเธญ)</div>
+    <div class="cal-legend">${CAT_ORDER.map(c=>`<span class="cleg"><i style="background:${CATC[c]}"></i>${CLABEL[c]}</span>`).join('')}</div>`;
+}
+document.getElementById('calPrev').onclick=()=>{ calM--; if(calM<0){calM=11;calY--;} renderCalendar(); };
+document.getElementById('calNext').onclick=()=>{ calM++; if(calM>11){calM=0;calY++;} renderCalendar(); };
+
+// เนเธเธเธฅเนเธงเธเธซเธเนเธฒเธ•เธฒเธกเธงเธฑเธ (Finish-First): { 'YYYY-MM-DD': [foodId, foodId, foodId] }
+function projectByDate(maxDays=120){
+  const q=buildQueue(); const map={}; const tk=todayKey(); const day=state.logs[tk]||{}; let qi=0;
+  map[tk]=MEAL_SLOTS.map(s=>{ const e=day[s.key]; if(e&&e.done) return e.foodId; return q[qi++]||null; });
+  let off=1; while(off<maxDays && qi<q.length){ map[addDaysKey(off)]=[q[qi++]||null,q[qi++]||null,q[qi++]||null]; off++; }
+  return map;
+}
+function openDay(dk){
+  const tk=todayKey(); const isPast=dk<tk; const isFuture=dk>tk;
+  const day=state.logs[dk]||{};
+  const [yy,mm,dd]=dk.split('-').map(Number); const dObj=new Date(yy,mm-1,dd);
+  const proj = !isPast ? (projectByDate()[dk]||[]) : [];
+  const times=state.profile.mealTimes||['08:00','13:00','18:00'];
+  const mealsHtml = MEAL_SLOTS.map((s,i)=>{
+    const e=day[s.key]; const done=e&&e.done;
+    const f = done?findFood(e.foodId):(proj[i]?findFood(proj[i]):null);
+    const tag = done?'<span class="mm-tag done">โ“ เธเธดเธเนเธฅเนเธง</span>':(isFuture?'<span class="mm-tag plan">เนเธเธ</span>':'');
+    return `<div class="mini-meal"><span class="mm-when">${s.emoji} ${s.label} ${times[i]}</span>${f?`<div class="mm-thumb">${pic(f)}</div><span>${f.name}</span>${tag}`:'<span style="color:var(--ink-soft)">โ€” เน€เธเธดเนเธกเธญเธฒเธซเธฒเธฃเนเธเธเธฅเธฑเธ</span>'}</div>`;
+  }).join('');
+  const pw=powderOfDay(dObj); const tt=todaysTreat(dObj); const n=computeNutrition(dk);
+  const eatenFoods=[...new Set(MEAL_SLOTS.map(s=>day[s.key]).filter(e=>e&&e.done).map(e=>e.foodId))].map(findFood).filter(Boolean);
+  const planFoods=[...new Set(proj.filter(Boolean))].map(findFood).filter(Boolean);
+  const showFoods = eatenFoods.length?eatenFoods:planFoods;
+  const benefits=[...new Set(showFoods.flatMap(f=>f.benefits||[]))];
+  openModal(`<h3>${dkPretty(dk)}${isFuture?' ยท เนเธเธ':(dk===tk?' ยท เธงเธฑเธเธเธตเน':'')}</h3>
+    <div class="fd-sec"><h4>๐ฝ เธกเธทเนเธญเธญเธฒเธซเธฒเธฃ</h4>${mealsHtml}</div>
+    <div class="fd-sec"><h4>โจ เนเธฃเธขเธเธ & ๐ช เธเธเธก</h4><div class="benefit-list">
+      <div>โจ เนเธฃเธขเธเธ: <b style="margin-left:auto">${pw?pw.name:'โ€”'}</b></div>
+      <div style="color:var(--ink-soft);font-size:12.5px">เน€เธเธเธฒเธฐเธกเธทเนเธญเน€เธเนเธฒ ${times[0]} ยท เธงเธฑเธเธฅเธฐ 1 (เนเธกเนเธ•เนเธญเธเธ—เธธเธเธกเธทเนเธญ)</div>
+      <div>๐ช เธเธเธก: <b style="margin-left:auto">${tt?tt.name:'โ€”'}</b></div>
+      <div style="color:var(--ink-soft);font-size:12.5px">เนเธซเน ~15:00 เธเนเธงเธเธเนเธฒเธข ยท เธงเธฑเธเธฅเธฐ 1</div></div></div>
+    ${(!isFuture&&n.eatenCount)?`<div class="fd-sec"><h4>โค๏ธ เนเธ เธเธเธฒเธเธฒเธฃ</h4><div class="empty" style="padding:4px">เธเธฐเนเธเธ <b style="font-size:20px;color:var(--pink-deep)">${n.score}</b>/100 ยท ${n.kcal} kcal</div></div>`:''}
+    ${benefits.length?`<div class="fd-sec"><h4>๐ฟ เธเธฃเธฐเนเธขเธเธเน${isFuture?'เธ—เธตเนเธเธฐเนเธ”เนเธฃเธฑเธ':''}</h4><div class="benefit-list">${benefits.map(b=>`<div>โ“ ${b}</div>`).join('')}</div></div>`:''}
+    <div class="fd-sec"><h4>๐“ เนเธเนเธ•</h4><textarea id="dayNote" rows="2" placeholder="เธเธฑเธเธ—เธถเธ...">${state.notes[dk]||''}</textarea>
+      <button class="btn-primary mt" onclick="saveNote('${dk}')">เธเธฑเธเธ—เธถเธเนเธเนเธ•</button></div>`);
+}
+function saveNote(dk){ state.notes[dk]=document.getElementById('dayNote').value.trim(); save(); closeModal(); toast('เธเธฑเธเธ—เธถเธเนเธเนเธ•เนเธฅเนเธง'); }
+function toggleTreatDone(){ const k=todayKey()+'_day'; state.checks[k]=state.checks[k]||{}; state.checks[k].treat=!state.checks[k].treat; save(); renderHome(); }
+// เธชเธณเธฃเธญเธ/เธเธนเนเธเธทเธเธเนเธญเธกเธนเธฅ
+function exportData(){ const blob=new Blob([JSON.stringify(state)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='cindycare-backup-'+todayKey()+'.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500); toast('เธ”เธฒเธงเธเนเนเธซเธฅเธ”เนเธเธฅเนเธชเธณเธฃเธญเธเนเธฅเนเธง โฌ๏ธ'); }
+function importData(e){ const f=e.target.files&&e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=ev=>{ try{ const d=JSON.parse(ev.target.result); if(!d||!d.profile)throw 0; state=Object.assign(fresh(),d); save(); closeModal(); toast('เธเธนเนเธเธทเธเธเนเธญเธกเธนเธฅเนเธฅเนเธง ๐’•'); renderAll(); }catch(err){ toast('เนเธเธฅเนเนเธกเนเธ–เธนเธเธ•เนเธญเธ'); } }; r.readAsText(f); }
+
+/* ===== FOOD LIBRARY ===== */
+let foodCat='all';
+function renderFood(){
+  const cats=['all',...CAT_ORDER]; const lbl={all:'เธ—เธฑเนเธเธซเธกเธ”',...CAT};
+  document.getElementById('foodTabs').innerHTML = cats.map(c=>`<button class="${foodCat===c?'active':''}" onclick="setFoodCat('${c}')">${lbl[c]}</button>`).join('');
+  const items = foodCat==='all'?foods():foods().filter(f=>f.cat===foodCat);
+  document.getElementById('foodGrid').innerHTML = items.length ? items.map(foodCard).join('') : '<div class="empty" style="grid-column:1/-1">เนเธกเนเธกเธตเธฃเธฒเธขเธเธฒเธฃ</div>';
+}
+function setFoodCat(c){ foodCat=c; renderFood(); }
+function foodCard(f){
+  const packs=inv(f.id).packs||0; const lvl=packs<=0?'out':(packs<=2?'low':'ok'); const txt=packs<=0?'เธซเธกเธ”':packs;
+  const open = state.activePack&&state.activePack.foodId===f.id;
+  const meta = f.meals?`${f.meals} เธกเธทเนเธญ/เธเธดเนเธ`:(f.gramsPerDay?`${f.gramsPerDay} เธ./เธงเธฑเธ`:'เน€เธชเธฃเธดเธก');
+  return `<div class="pcard" onclick="openFood('${f.id}')">
+    <div class="pcard-img">${pic(f)}<span class="stock-pill ${lvl}">${txt}</span>${open?'<span class="open-flag">เน€เธเธดเธ”เธญเธขเธนเน</span>':''}<button class="card-del" onclick="event.stopPropagation();confirmDel('${f.id}')" title="เธฅเธ">๐—‘๏ธ</button></div>
+    <div class="pcard-body">
+      <div class="pcard-name">${f.name}</div>
+      <div class="pcard-tags">${f.complete?'<span class="tag complete">เธเธฃเธเธชเนเธงเธ</span>':'<span class="tag supp">เน€เธชเธฃเธดเธก</span>'}${f.urinary?'<span class="tag uri">Urinary</span>':''}</div>
+      <div class="pcard-meta">${meta}</div>
+    </div></div>`;
+}
+
+/* ===== FOOD DETAILS ===== */
+function openFood(id){
+  const f=findFood(id); if(!f)return; const i=inv(id);
+  const nf=(v,u,l)=>`<div class="nf"><b>${v!=null&&v!==''?v+u:'โ€”'}</b><small>${l}</small></div>`;
+  const canOpenThis = f.meals && (i.packs||0)>0 && canOpen();
+  openModal(`
+    <div class="fd-hero">${pic(f)}</div>
+    <div class="fd-name">${f.name}</div>
+    <div class="pcard-tags" style="margin-top:6px">${f.complete?'<span class="tag complete">เธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ</span>':'<span class="tag supp">เธญเธฒเธซเธฒเธฃเน€เธชเธฃเธดเธก</span>'}${f.urinary?'<span class="tag uri">Urinary Care</span>':''}</div>
+    ${f.desc?`<p class="help" style="margin-top:10px">${f.desc}</p>`:''}
+    ${(f.benefits||[]).length?`<div class="fd-sec"><h4>๐ฟ เธเธฃเธฐเนเธขเธเธเน</h4><div class="benefit-list">${f.benefits.map(b=>`<div>โ“ ${b}</div>`).join('')}</div></div>`:''}
+    <div class="fd-sec"><h4>๐“ เนเธ เธเธเธฒเธเธฒเธฃ</h4><div class="nf-grid">
+      ${nf(f.protein,'%','เนเธเธฃเธ•เธตเธ')}${nf(f.fat,'%','เนเธเธกเธฑเธ')}${nf(f.moisture,'%','เธเธงเธฒเธกเธเธทเนเธ')}${nf(f.kcal100,'','kcal/100g')}</div></div>
+    ${(f.suitable||[]).length?`<div class="fd-sec"><h4>โ… เน€เธซเธกเธฒเธฐเธเธฑเธ</h4><div class="suit-tags">${f.suitable.map(s=>`<span class="suit">${SUIT_LABEL[s]||s}</span>`).join('')}</div></div>`:''}
+    <div class="fd-sec"><h4>๐“ฆ เธชเธ•เนเธญเธ & เธเธฒเธฃเธเธณเธเธงเธ“</h4>
+      <div class="benefit-list">
+        <div>เธเธเน€เธซเธฅเธทเธญ: <b style="margin-left:auto">${(f.dry||f.gramsPerDay)?((i.grams||0)+' เธ.'):((i.packs||0)+' เธเธดเนเธ')}</b></div>
+        ${(f.dry||f.gramsPerDay)
+          ? `<div>เธเธดเธ ${f.gramsPerDay||22} เธ./เธงเธฑเธ โ’ เธเธดเธเนเธ”เนเธญเธตเธ <b style="margin-left:auto;color:var(--pink-deep)">${foodDaysLeft(f)} เธงเธฑเธ</b></div>`
+          : (f.meals ? `<div>${f.meals} เธกเธทเนเธญ/เธเธดเนเธ ยท เธฃเธงเธก ${(i.packs||0)*f.meals} เธกเธทเนเธญ โ’ <b style="margin-left:auto;color:var(--pink-deep)">~${foodDaysLeft(f)} เธงเธฑเธ</b></div>` : '<div>เธญเธฒเธซเธฒเธฃเน€เธชเธฃเธดเธก (เนเธกเนเธเธฑเธเน€เธเนเธเธกเธทเนเธญ)</div>')}
+        ${f.daysOpen?`<div>เน€เธเธดเธ”เนเธฅเนเธงเน€เธเนเธเนเธ”เน ~${f.daysOpen} เธงเธฑเธ</div>`:''}
+        ${f.storage?`<div>${f.storage}</div>`:''}
+        ${state.activePack&&state.activePack.foodId===f.id?(()=>{const since=daysSince(state.activePack.openedAt);const safe=f.daysOpen||3;const left=safe-since;return `<div style="color:${left<=0?'var(--danger)':'var(--pink-deep)'}">${left<=0?('โ ๏ธ เน€เธเธดเธ”เน€เธเธดเธ '+safe+' เธงเธฑเธเนเธฅเนเธง เธเธงเธฃเธ—เธดเนเธ'):('เธเธณเธฅเธฑเธเน€เธเธดเธ” ยท เน€เธซเธฅเธทเธญ '+state.activePack.remaining+' เธกเธทเนเธญ ยท เธเธงเธฃเธเธดเธเธซเธกเธ”เนเธ '+left+' เธงเธฑเธ')}</div>`;})():''}
+      </div></div>
+    <div class="fd-actions">
+      ${canOpenThis?`<button class="btn-primary" onclick="openPack('${f.id}')">๐ฅซ เน€เธเธดเธ”เนเธเนเธ</button>`:''}
+      <button class="btn-soft" onclick="openFoodForm('${f.id}')">โ๏ธ เนเธเนเนเธ/เธเธทเนเธญ</button>
+      <button class="btn-ghost" onclick="confirmDel('${f.id}')">๐—‘๏ธ เธฅเธ</button>
+    </div>`);
+}
+
+/* ===== FOOD FORM (เน€เธเธดเนเธก/เนเธเน/เธเธทเนเธญ) ===== */
+function openFoodForm(id){
+  const f = findFood(id) || { cat:'wet', complete:true }; const i = id?inv(id):{}; const isNew=!id;
+  openModal(`<h3>${isNew?'๏ผ เน€เธเธดเนเธกเธญเธฒเธซเธฒเธฃ':'โ๏ธ '+f.name}</h3>
+    <div class="field"><label>เธฃเธนเธ (เธญเธฑเธเนเธซเธฅเธ”)</label>
+      <div class="up-area"><div class="sticker-frame" id="ffPrev">${f.img?`<img src="${f.img}">`:'<span class="ph-cam">๐“ท</span>'}</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+        <button type="button" class="btn-soft" onclick="document.getElementById('ffFile').click()">๐“ท เธญเธฑเธเนเธซเธฅเธ”</button>
+        <button type="button" class="btn-ghost" onclick="document.getElementById('ff-img').value='';document.getElementById('ffPrev').innerHTML='<span class=ph-cam>๐“ท</span>'">เธฅเธเธฃเธนเธ</button></div></div>
+      <input type="file" id="ffFile" accept="image/*" hidden onchange="pickImg(event)"><input type="hidden" id="ff-img" value="${f.img||''}"></div>
+    <div class="field"><label>เธเธทเนเธญ</label><input id="ff-name" value="${f.name||''}" placeholder="เธเธทเนเธญเธญเธฒเธซเธฒเธฃ"></div>
+    <div class="field"><label>เธซเธกเธงเธ”</label><select id="ff-cat" onchange="toggleDry()">${CAT_ORDER.map(c=>`<option value="${c}" ${f.cat===c?'selected':''}>${CAT[c]}</option>`).join('')}</select></div>
+    <div class="chk-row" style="margin-bottom:12px">
+      <label><input type="checkbox" id="ff-complete" ${f.complete?'checked':''}> เธเธฃเธเธชเนเธงเธ</label>
+      <label><input type="checkbox" id="ff-uri" ${f.urinary?'checked':''}> Urinary</label>
+      <label><input type="checkbox" id="ff-bygram" ${(f.byGram||f.cat==='dry')?'checked':''} onchange="toggleDry()"> เนเธซเนเน€เธเนเธเธเธฃเธฑเธก/เธงเธฑเธ</label></div>
+    <div class="frow"><div class="field"><label>เธเธฃเธฑเธก/เธเธดเนเธ (1 เธเธญเธ)</label><input type="number" id="ff-grams" value="${f.grams||''}"></div>
+      <div class="field"><label>เธกเธทเนเธญ/เธเธดเนเธ (1 เธเธญเธเธเธดเธเธเธตเนเธกเธทเนเธญ)</label><input type="number" id="ff-meals" value="${f.meals||''}"></div></div>
+    <div class="field"><label>๐“ เนเธ เธเธเธฒเธเธฒเธฃ โ€” เธเธฃเธญเธเน€เธญเธ เธซเธฃเธทเธญเธญเนเธฒเธเธเธฒเธเธฃเธนเธเธเธฅเธฒเธ</label>
+      <button type="button" class="btn-soft" onclick="document.getElementById('ocrFile').click()">๐” เธญเนเธฒเธเธเธฅเธฒเธเธเธฒเธเธฃเธนเธ (เธเธฃเธญเธเนเธซเนเธญเธฑเธ•เนเธเธกเธฑเธ•เธด)</button>
+      <input type="file" id="ocrFile" accept="image/*" hidden onchange="ocrPick(event)">
+      <div id="ocrStatus" class="help" style="margin-top:6px"></div></div>
+    <div class="frow"><div class="field"><label>kcal/100g</label><input type="number" id="ff-kcal" value="${f.kcal100||''}"></div>
+      <div class="field"><label>เนเธเธฃเธ•เธตเธ %</label><input type="number" step="0.1" id="ff-protein" value="${f.protein||''}"></div></div>
+    <div class="frow"><div class="field"><label>เนเธเธกเธฑเธ %</label><input type="number" step="0.1" id="ff-fat" value="${f.fat||''}"></div>
+      <div class="field"><label>เธเธงเธฒเธกเธเธทเนเธ %</label><input type="number" step="0.1" id="ff-moist" value="${f.moisture||''}"></div></div>
+    <div class="field"><label>เธเธฃเธฐเนเธขเธเธเน (เธเธฑเนเธเธ”เนเธงเธข ,)</label><textarea id="ff-benefits" rows="2" placeholder="เธ”เธนเนเธฅเธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐ, เธเธฃเธเธชเนเธงเธ">${(f.benefits||[]).join(', ')}</textarea></div>
+    <hr style="border:none;border-top:1px solid var(--line);margin:6px 0 14px">
+    <div class="frow">
+      <div class="field" id="packField"><label>เธเธณเธเธงเธเธ—เธตเนเธกเธต (เธเธดเนเธ)</label><input type="number" id="ff-packs" value="${i.packs||''}"></div>
+      <div class="field" id="gramsField" style="display:none"><label>เธเธฃเธฑเธกเธเธเน€เธซเธฅเธทเธญ</label><input type="number" id="ff-gramsleft" value="${i.grams||''}"></div>
+      <div class="field" id="gpdField" style="display:none"><label>เธเธฃเธฑเธก/เธงเธฑเธ</label><input type="number" id="ff-gpd" value="${f.gramsPerDay||''}"></div>
+      <div class="field"><label>เธฃเธฒเธเธฒ เธฟ</label><input type="number" id="ff-price" value="${i.price||''}"></div></div>
+    <div class="frow"><div class="field"><label>เธเธทเนเธญเธเธฒเธ</label><input list="srcL" id="ff-source" value="${i.source||''}" placeholder="เน€เธฅเธทเธญเธ/เธเธดเธกเธเน"><datalist id="srcL">${SOURCES.map(s=>`<option value="${s}">`).join('')}</datalist></div>
+      <div class="field"><label>เธงเธฑเธเธ—เธตเนเธเธทเนเธญ</label><input type="date" id="ff-buydate" value="${i.buyDate||todayKey()}"></div></div>
+    <button class="btn-primary" onclick="saveFood('${id||''}')">เธเธฑเธเธ—เธถเธ</button>`);
+  toggleDry();
+}
+function toggleDry(){ const cat=(document.getElementById('ff-cat')||{}).value; const bg=document.getElementById('ff-bygram'); const dry=cat==='dry'||(bg&&bg.checked); const pf=document.getElementById('packField'),gf=document.getElementById('gramsField'),gp=document.getElementById('gpdField'); if(!pf)return; pf.style.display=dry?'none':''; gf.style.display=dry?'':'none'; gp.style.display=dry?'':'none'; }
+function pickImg(e){ const file=e.target.files&&e.target.files[0]; if(!file)return; const r=new FileReader(); r.onload=ev=>resize(ev.target.result,400,d=>{document.getElementById('ff-img').value=d;document.getElementById('ffPrev').innerHTML=`<img src="${d}">`;}); r.readAsDataURL(file); }
+function resize(src,max,cb){ const im=new Image(); im.onload=()=>{let w=im.width,h=im.height;const s=Math.min(1,max/Math.max(w,h));w=w*s|0;h=h*s|0;const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);try{cb(c.toDataURL('image/jpeg',.82));}catch(e){cb(src);}}; im.onerror=()=>cb(src); im.src=src; }
+
+/* ---------- OCR เธญเนเธฒเธเธเธฅเธฒเธ โ’ เธเธฃเธญเธเนเธ เธเธเธฒเธเธฒเธฃเนเธซเน (Tesseract เนเธซเธฅเธ”เธเธฒเธ CDN) ---------- */
+function ensureTesseract(){ return new Promise((res,rej)=>{ if(window.Tesseract)return res(); const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'; s.onload=()=>res(); s.onerror=()=>rej(new Error('no-net')); document.head.appendChild(s); }); }
+function preprocessOCR(src){ return new Promise(res=>{ const im=new Image(); im.onload=()=>{ const sc=Math.max(1,Math.min(2,1400/Math.max(im.width,im.height))); const w=Math.round(im.width*sc),h=Math.round(im.height*sc); const c=document.createElement('canvas'); c.width=w;c.height=h; const x=c.getContext('2d'); x.drawImage(im,0,0,w,h); try{ const d=x.getImageData(0,0,w,h),p=d.data; for(let i=0;i<p.length;i+=4){let g=.3*p[i]+.59*p[i+1]+.11*p[i+2]; g=g>145?255:(g<95?0:g); p[i]=p[i+1]=p[i+2]=g;} x.putImageData(d,0,0); res(c.toDataURL('image/png')); }catch(e){res(src);} }; im.onerror=()=>res(src); im.src=src; }); }
+// เน€เธ”เธฒเธเธทเนเธญเธเธฒเธเธเธฃเธฃเธ—เธฑเธ”เธ•เธฑเธงเธญเธฑเธเธฉเธฃเน€เธ”เนเธเธ—เธตเนเนเธกเนเนเธเนเธเธณเนเธ เธเธเธฒเธเธฒเธฃ
+function grabName(text){
+  // เธเนเธฒเธกเธเธณเนเธ เธเธเธฒเธเธฒเธฃ + เธเธณเนเธเธฃเธข (tagline) เน€เธเธทเนเธญเนเธซเนเนเธ”เน "เธเธทเนเธญเนเธเธฃเธเธ”เน" เธเธฃเธดเธ
+  const bad=/protein|fat|fibre|fiber|moisture|kcal|analysis|guaranteed|ingredient|net|wt|complete|balanced|care|premium|recipe|formula|flavou?r|grain|natural|nutrition|adult|kitten|เนเธเธฃเธ•เธตเธ|เนเธเธกเธฑเธ|เธเธงเธฒเธกเธเธทเนเธ|เน€เธชเนเธเนเธข|เธเธฅเธฑเธเธเธฒเธ|เธงเธดเน€เธเธฃเธฒเธฐเธซเน|เธชเนเธงเธเธเธฃเธฐเธเธญเธ|เธเนเธณเธซเธเธฑเธ|เธชเธนเธ•เธฃ|เธเธฃเธตเน€เธกเธตเธขเธก|เธเธฃเธ|เธชเธกเธเธนเธฃเธ“เน/i;
+  const lines=(text||'').split('\n');
+  for(const raw of lines){ // เน€เธฅเธทเธญเธเธเธฃเธฃเธ—เธฑเธ”เนเธฃเธเธ—เธตเนเธ”เธนเน€เธเนเธเธเธทเนเธญ (เนเธเธฃเธเธ”เนเธกเธฑเธเธญเธขเธนเนเธเธเธชเธธเธ”)
+    const l=raw.replace(/[^A-Za-z0-9เธ-เน\s&.\-]/g,' ').replace(/\s+/g,' ').trim();
+    if(!l||bad.test(l))continue;
+    const words=l.split(' ').filter(w=>/[A-Za-zเธ-เน]{3,}/.test(w)); if(!words.length)continue;
+    const cand=words.join(' '); if(!/[A-Za-zเธ-เน]{4,}/.test(cand))continue;
+    if(cand.length>=4&&cand.length<=26)return cand;
+  }
+  return '';
+}
+// เธ•เธฃเธงเธเธเธตเธขเนเน€เธงเธดเธฃเนเธ”เธเธฃเธฐเนเธขเธเธเนเธเธฒเธเธเนเธญเธเธงเธฒเธกเธเธฅเธฒเธ
+const BENEFIT_KW=[
+  [/urinary|struvite|crystal|เธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐ|เธเธดเนเธง|เธเธฅเธถเธ|์”๋ก|๋น๋จ/i,'เธ”เธนเนเธฅเธ—เธฒเธเน€เธ”เธดเธเธเธฑเธชเธชเธฒเธงเธฐ','uri'],
+  [/hairball|เธเนเธญเธเธเธ|ํ—ค์–ด๋ณผ/i,'เธฅเธ”เธเนเธญเธเธเธ'],
+  [/complete|เธชเธกเธเธนเธฃเธ“เน|เธเธฃเธ(เธ–เนเธงเธ|เธชเนเธงเธ)|balanced|์ข…ํ•ฉ|์์ /i,'เธญเธฒเธซเธฒเธฃเธเธฃเธเธชเนเธงเธ','complete'],
+  [/moisture|เธเธงเธฒเธกเธเธทเนเธ|hydrat|เน€เธเธดเนเธกเธเนเธณ|์๋ถ/i,'เธเธงเธฒเธกเธเธทเนเธเธชเธนเธ'],
+  [/digest|เธขเนเธญเธข|prebiotic|เธเธฃเธตเนเธเนเธญ|์ํ”|์ฅ ๊ฑด๊ฐ•/i,'เธขเนเธญเธขเธเนเธฒเธข'],
+  [/skin|coat|เธเธดเธงเธซเธเธฑเธ|เธเธณเธฃเธธเธเธเธ|เธเธเธชเธงเธข|ํ”ผ๋ถ€|๋ชจ์ง|๋ชจ๋ฐ/i,'เธเธณเธฃเธธเธเธเธดเธงเธซเธเธฑเธเนเธฅเธฐเธเธ'],
+  [/kidney|เนเธ•|renal|์ ์ฅ/i,'เธ”เธนเนเธฅเนเธ•'],
+  [/immun|เธ เธนเธกเธด|๋ฉด์—ญ/i,'เน€เธชเธฃเธดเธกเธ เธนเธกเธดเธเธธเนเธกเธเธฑเธ'],
+  [/taurine|เธ—เธญเธฃเธตเธ|ํ€์ฐ๋ฆฐ/i,'เธกเธตเธ—เธญเธฃเธตเธ เธเธณเธฃเธธเธเธซเธฑเธงเนเธ/เธ•เธฒ'],
+  [/omega|เนเธญเน€เธกเธเนเธฒ|์ค๋ฉ”๊ฐ€/i,'เธกเธตเนเธญเน€เธกเธเนเธฒ'],
+];
+function fillFromLabel(text){
+  const t=(text||'').replace(/\n/g,' '); const cat=(document.getElementById('ff-cat')||{}).value||'wet'; const dry=cat==='dry'; const got=[];
+  const grab=re=>{const m=t.match(re);return m?m[m.length-1]:null;};
+  const setN=(id,raw,lo,hi,label)=>{ if(!raw)return; const e=document.getElementById(id); if(!e)return; let v=parseFloat(String(raw).replace(',','.')); if(isNaN(v))return; let g=0; while(v>hi&&v/10>=lo&&v/10<=hi*1.2&&g++<3)v=v/10; v=Math.round(v*10)/10; e.value=v; got.push(label+' '+v); };
+  setN('ff-kcal',grab(/(\d{2,4}(?:[.,]\d+)?)\s*kcal/i)||grab(/(?:ME|์—ด๋|์นผ๋ก๋ฆฌ)[^0-9]{0,8}(\d{2,4})/i),30,600,'kcal');
+  setN('ff-protein',grab(/(?:protein|เนเธเธฃเธ•เธตเธ|๋จ๋ฐฑ์ง)[^0-9]{0,14}(\d+(?:[.,]\d+)?)/i),3,55,'เนเธเธฃเธ•เธตเธ');
+  setN('ff-fat',grab(/(?:fat|เนเธเธกเธฑเธ|์ง€๋ฐฉ)[^0-9]{0,14}(\d+(?:[.,]\d+)?)/i),dry?3:0.5,dry?28:14,'เนเธเธกเธฑเธ');
+  setN('ff-moist',grab(/(?:moisture|เธเธงเธฒเธกเธเธทเนเธ|์๋ถ)[^0-9]{0,14}(\d+(?:[.,]\d+)?)/i),dry?2:55,dry?16:90,'เธเธงเธฒเธกเธเธทเนเธ');
+  // เธเธทเนเธญ (เธ–เนเธฒเธเนเธญเธเธขเธฑเธเธงเนเธฒเธ)
+  const nameEl=document.getElementById('ff-name');
+  if(nameEl && !nameEl.value){ const nm=grabName(text); if(nm){ nameEl.value=nm; got.push('เธเธทเนเธญ "'+nm+'"'); } }
+  // เธเธฃเธฐเนเธขเธเธเน + เธ•เธดเนเธ Complete/Urinary เธเธฒเธเธเธตเธขเนเน€เธงเธดเธฃเนเธ”
+  const ben=[]; BENEFIT_KW.forEach(([re,label,flag])=>{ if(re.test(t)){ ben.push(label);
+    if(flag==='uri'){const u=document.getElementById('ff-uri');if(u)u.checked=true;}
+    if(flag==='complete'){const c=document.getElementById('ff-complete');if(c)c.checked=true;} } });
+  if(ben.length){ const be=document.getElementById('ff-benefits'); if(be && !be.value.trim()){ be.value=ben.join(', '); got.push('เธเธฃเธฐเนเธขเธเธเน '+ben.length+' เธเนเธญ'); } }
+  return got;
+}
+function ocrPick(e){ const file=e.target.files&&e.target.files[0]; if(!file)return; document.getElementById('ocrStatus').textContent='โณ เธเธณเธฅเธฑเธเธญเนเธฒเธเธเธฅเธฒเธ...'; const r=new FileReader(); r.onload=ev=>ocrRun(ev.target.result); r.readAsDataURL(file); }
+async function ocrRun(src){
+  const st=document.getElementById('ocrStatus');
+  try{ await ensureTesseract(); st.textContent='โณ เธเธณเธฅเธฑเธเธญเนเธฒเธ...'; const proc=await preprocessOCR(src);
+    const {data}=await Tesseract.recognize(proc,'eng+tha+kor',{logger:m=>{ if(m.status==='recognizing text') st.textContent='โณ เธญเนเธฒเธเธญเธขเธนเน '+Math.round(m.progress*100)+'%'; }});
+    const got=fillFromLabel(data.text||'');
+    st.innerHTML = got.length ? 'โ… เธเธฃเธญเธเนเธซเน: '+got.join(', ')+' โ€” เธ•เธฃเธงเธเธญเธตเธเธ—เธต (เธเธธเธ”เธ—เธจเธเธดเธขเธกเน€เธเนเธเธ”เธน)' : 'โ ๏ธ เธญเนเธฒเธเธ•เธฑเธงเน€เธฅเธเนเธกเนเธเธฑเธ” เธฅเธญเธเธ–เนเธฒเธขเนเธเธฅเนเน เธเธฑเธ”เน เธซเธฃเธทเธญเธเธฃเธญเธเน€เธญเธ';
+  }catch(e){ st.innerHTML='โ ๏ธ เธญเนเธฒเธเนเธกเนเนเธ”เนเธ•เธญเธเธเธตเน (เธญเธฒเธเนเธกเนเธกเธตเน€เธเนเธ•) โ€” เธเธฃเธญเธเน€เธญเธเนเธ”เนเน€เธฅเธข'; }
+}
+function saveFood(id){
+  const name=document.getElementById('ff-name').value.trim(); if(!name){toast('เนเธชเนเธเธทเนเธญเธเนเธญเธเธเธฐ');return;}
+  const cat=document.getElementById('ff-cat').value;
+  const data={ name, cat, complete:document.getElementById('ff-complete').checked, urinary:document.getElementById('ff-uri').checked,
+    grams:parseFloat(document.getElementById('ff-grams').value)||0, meals:parseInt(document.getElementById('ff-meals').value)||0,
+    kcal100:parseFloat(document.getElementById('ff-kcal').value)||0, protein:parseFloat(document.getElementById('ff-protein').value)||0,
+    fat:parseFloat(document.getElementById('ff-fat').value)||0, moisture:parseFloat(document.getElementById('ff-moist').value)||0,
+    img:document.getElementById('ff-img').value.trim(),
+    benefits:document.getElementById('ff-benefits').value.split(',').map(s=>s.trim()).filter(Boolean) };
+  let f=findFood(id);
+  if(f) Object.assign(f,data); else { f=Object.assign({id:'cf'+Date.now(),supplement:!data.complete,suitable:[]},data); state.foods.push(f); }
+  const byg=document.getElementById('ff-bygram')&&document.getElementById('ff-bygram').checked;
+  const isDry = cat==='dry' || byg;   // เนเธซเธกเธ”เธเธฃเธฑเธก/เธงเธฑเธ
+  f.dry = cat==='dry'; f.byGram = !!byg;
+  if(isDry){ f.gramsPerDay=parseFloat(document.getElementById('ff-gpd').value)||20; }
+  const price=parseFloat(document.getElementById('ff-price').value)||0, source=document.getElementById('ff-source').value.trim();
+  const buyDate=document.getElementById('ff-buydate').value||todayKey();
+  const invObj={ price, source, buyDate };
+  if(isDry){ const g=parseFloat(document.getElementById('ff-gramsleft').value)||0; invObj.grams=g; invObj.packs=g>0?1:0; }
+  else invObj.packs=parseInt(document.getElementById('ff-packs').value)||0;
+  state.inventory[f.id]=invObj;
+  if (price>0) { state.purchases=state.purchases||[]; state.purchases.push({ foodId:f.id, date:buyDate, packs:invObj.packs, price, source }); }
+  save(); closeModal(); toast('เธเธฑเธเธ—เธถเธเนเธฅเนเธง'); renderAll();
+}
+function confirmDel(id){ const f=findFood(id); openModal(`<h3>เธฅเธ "${f.name}"?</h3><p class="help" style="text-align:center">เธฅเธเธญเธญเธเธเธฒเธเธเธฅเธฑเธเธ–เธฒเธงเธฃ</p><div class="frow"><button class="btn-soft" onclick="closeModal()">เธขเธเน€เธฅเธดเธ</button><button class="btn-primary" onclick="delFood('${id}')">เธฅเธเน€เธฅเธข</button></div>`); }
+function delFood(id){ state.foods=state.foods.filter(f=>f.id!==id); delete state.inventory[id]; if(state.activePack&&state.activePack.foodId===id)state.activePack=null; save(); closeModal(); toast('เธฅเธเนเธฅเนเธง'); renderAll(); }
+
+document.getElementById('addFoodBtn').onclick=()=>openFoodForm();
+document.getElementById('batchBtn').onclick=()=>openBatch();
+function openBatch(){ openModal(`<h3>๏ผ เน€เธเธดเนเธกเธซเธฅเธฒเธขเธฃเธฒเธขเธเธฒเธฃ</h3><p class="help">เธเธฃเธญเธเธเธทเนเธญ+เธซเธกเธงเธ”+เธเธณเธเธงเธ เน€เธงเนเธเธงเนเธฒเธเนเธ”เน</p><div id="batchRows"></div><button class="btn-soft" onclick="addBatchRow()">๏ผ เนเธ–เธง</button><button class="btn-primary mt" onclick="saveBatch()">เธเธฑเธเธ—เธถเธเธ—เธฑเนเธเธซเธกเธ”</button>`); addBatchRow();addBatchRow();addBatchRow(); }
+function addBatchRow(){ const w=document.getElementById('batchRows'); const d=document.createElement('div'); d.className='brow'; d.innerHTML=`<input class="b-name" placeholder="เธเธทเนเธญ"><div class="frow"><select class="b-cat">${CAT_ORDER.map(c=>`<option value="${c}">${CAT[c]}</option>`).join('')}</select><input class="b-qty" type="number" placeholder="เธเธณเธเธงเธ"></div>`; w.appendChild(d); }
+function saveBatch(){ let n=0; document.querySelectorAll('#batchRows .brow').forEach(r=>{ const name=r.querySelector('.b-name').value.trim(); if(!name)return; const cat=r.querySelector('.b-cat').value; const def={wet:{grams:80,meals:3},dry:{grams:1000,meals:0},soup:{grams:40,meals:0},freeze:{meals:0},powder:{meals:0},treat:{meals:0}}[cat]||{}; const id='cf'+Date.now()+(n); const f=Object.assign({id,name,cat,complete:cat==='wet',supplement:cat!=='wet',urinary:false,kcal100:0,benefits:[],suitable:[]},def); state.foods.push(f); state.inventory[id]={packs:parseInt(r.querySelector('.b-qty').value)||0,buyDate:todayKey()}; n++; }); if(!n){toast('เธขเธฑเธเนเธกเนเนเธ”เนเธเธฃเธญเธ');return;} save();closeModal();toast(`เน€เธเธดเนเธก ${n} เธฃเธฒเธขเธเธฒเธฃ`);renderAll(); }
+
+/* ===== SHOPPING ===== */
+function renderShop(){
+  const need = foods().filter(f=>(inv(f.id).packs||inv(f.id).grams||f.meals||f.gramsPerDay)&&lowInfo(f).low);
+  document.getElementById('shopNeed').innerHTML = `<div class="block-head"><h2>เธ•เนเธญเธเธเธทเนเธญ (เนเธเธฅเนเธซเธกเธ”)</h2></div>` + (need.length? need.sort((a,b)=>lowInfo(a).sort-lowInfo(b).sort).map(f=>{ const li=lowInfo(f); const stk=isGramFood(f)?((inv(f.id).grams||0)+' เธ.'):((inv(f.id).packs||0)+' เธเธดเนเธ');
+    return `<div class="shop-row"><div class="shop-thumb">${pic(f)}</div><div><div class="shop-name">${f.name}</div><div class="shop-sub">${CAT[f.cat]} ยท ${stk}</div></div><span class="ls ${li.out?'out':'low'}">${li.label}</span><button class="btn-soft" style="flex:0 0 auto;padding:8px 12px" onclick="openFoodForm('${f.id}')">เธเธทเนเธญ</button><button class="btn-ghost" style="flex:0 0 auto;padding:8px 11px" onclick="confirmDel('${f.id}')" title="เธฅเธ">๐—‘๏ธ</button></div>`; }).join('') : '<div class="empty">เธชเธ•เนเธญเธเน€เธเธตเธขเธเธเธญ ๐‘</div>');
+  // stats
+  const totalMeals = mealFoods().reduce((s,f)=>s+(inv(f.id).packs||0)*f.meals,0);
+  const spent = (state.purchases||[]).reduce((s,p)=>s+(p.price||0),0);
+  document.getElementById('shopStats').innerHTML = `<div class="block-head"><h2>เธ เธฒเธเธฃเธงเธก</h2></div><div class="stat-grid">
+    <div class="stat"><b>${totalMeals}</b><small>เธกเธทเนเธญเธเธเน€เธซเธฅเธทเธญ</small></div>
+    <div class="stat"><b>${Math.floor(totalMeals/3)}</b><small>เธงเธฑเธเธ—เธตเนเธเธดเธเนเธ”เน</small></div>
+    <div class="stat"><b>${foods().filter(f=>(inv(f.id).packs||0)>0).length}</b><small>เธเธเธดเธ”เธ—เธตเนเธกเธต</small></div>
+    <div class="stat"><b>${spent.toLocaleString()}เธฟ</b><small>เธเธทเนเธญเธชเธฐเธชเธก</small></div></div>`;
+  // history
+  const ph = (state.purchases||[]).slice(-8).reverse();
+  document.getElementById('shopHistory').innerHTML = `<div class="block-head"><h2>เธเธฃเธฐเธงเธฑเธ•เธดเธเธฒเธฃเธเธทเนเธญ</h2></div>` + (ph.length? ph.map(p=>{ const f=findFood(p.foodId); return `<div class="shop-row"><div><div class="shop-name">${f?f.name:'โ€”'}</div><div class="shop-sub">${dkPretty(p.date)} ยท ${p.source||''}</div></div><span style="margin-left:auto;font-weight:700">${p.price?p.price+'เธฟ':''}</span></div>`; }).join('') : '<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธฃเธฐเธงเธฑเธ•เธด โ€” เธเธฑเธเธ—เธถเธเธฃเธฒเธเธฒเธ•เธญเธเน€เธเธดเนเธกเธชเธ•เนเธญเธเธเธฐเธกเธฒเนเธเธงเนเธ—เธตเนเธเธตเน</div>');
+}
+
+/* ===== HEALTH ===== */
+function renderHealth(){ renderHealthSummary(); renderTrend(); renderWater(); drawWeight(); renderPoop(); renderPee(); renderMeds(); renderVet(); }
+
+// เธเธฃเธฒเธเนเธ เธเธเธฒเธเธฒเธฃ 7 เธงเธฑเธ
+function renderTrend(){
+  const el=document.getElementById('trendCard'); if(!el)return;
+  let bars='';
+  for(let i=6;i>=0;i--){ const dk=addDaysKey(-i); const n=computeNutrition(dk); const sc=n.eatenCount?n.score:0;
+    const col=sc>=75?'var(--good)':(sc>=45?'var(--gold)':(sc>0?'var(--danger)':'var(--line)'));
+    const [y,m,d]=dk.split('-').map(Number); const lbl=new Date(y,m-1,d).toLocaleDateString('th-TH',{weekday:'short'});
+    bars+=`<div class="tb"><div class="tb-num">${n.eatenCount?sc:''}</div><div class="tb-track"><div class="tb-bar" style="height:${Math.max(3,sc)}%;background:${col}"></div></div><small>${lbl}</small></div>`; }
+  el.innerHTML=`<div class="block-head"><h2>๐“ เนเธ เธเธเธฒเธเธฒเธฃ 7 เธงเธฑเธ</h2></div><div class="trend">${bars}</div>`;
+}
+// เธเนเธณเธ”เธทเนเธก
+function waterTarget(){ return Math.round((state.profile.weight||3.7)*50); }
+function renderWater(){
+  const el=document.getElementById('waterCard'); if(!el)return; const dk=todayKey(); const ml=state.water[dk]||0; const t=waterTarget(); const pct=Math.min(100,Math.round(ml/t*100));
+  el.innerHTML=`<div class="block-head"><h2>๐’ง เธเนเธณเธ”เธทเนเธกเธงเธฑเธเธเธตเน</h2><span class="block-sub">${ml}/${t} เธกเธฅ.</span></div>
+    <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:linear-gradient(90deg,var(--blue-deep),var(--blue))"></div></div>
+    <div class="frow mt"><button class="btn-soft" onclick="addWater(20)">+20 เธกเธฅ.</button><button class="btn-soft" onclick="addWater(50)">+50 เธกเธฅ.</button><button class="btn-ghost" onclick="addWater(-20)">โ’20</button></div>
+    <div class="rec-sub" style="margin-top:8px">เน€เธเนเธฒ ~50 เธกเธฅ./เธเธ./เธงเธฑเธ ยท เธญเธฒเธซเธฒเธฃเน€เธเธตเธขเธเธเนเธงเธขเน€เธเธดเนเธกเธเนเธณเนเธ”เนเธกเธฒเธ</div>`;
+}
+function addWater(ml){ const dk=todayKey(); state.water[dk]=Math.max(0,(state.water[dk]||0)+ml); save(); renderWater(); }
+function medStatusOn(dk){ let req=0,done=0; state.meds.forEach(m=>{ const ro=medRunOut(m); const active=(!m.startDate||m.startDate<=dk)&&(!ro||ro.runOut>=dk); if(!active)return; (m.slots||[]).forEach(s=>{req++; const c=state.checks[dk+'_'+s]; if(c&&c['med_'+m.id])done++;}); }); return {req,done}; }
+function renderHealthSummary(){ const dk=todayKey(); const w=state.weights.find(x=>x.date===dk); const pooped=(state.poops[dk]||[]).filter(p=>p.t!=='none').length; const pees=(state.pees[dk]||[]).length; const ms=medStatusOn(dk); const medTxt=ms.req===0?'เนเธกเนเธกเธตเธขเธฒ':(ms.done>=ms.req?'เธเธฃเธ โ“':`เน€เธซเธฅเธทเธญ ${ms.req-ms.done}`);
+  document.getElementById('healthSummary').innerHTML=`<div class="block-head"><h2>๐“ เธชเธฃเธธเธเธงเธฑเธเธเธตเน</h2></div><div class="sum-grid"><div class="sum"><span>โ–๏ธ</span><b>${w?w.kg+' เธเธ.':'โ€”'}</b><small>เธเนเธณเธซเธเธฑเธ</small></div><div class="sum"><span>๐’</span><b>${medTxt}</b><small>เธขเธฒ</small></div><div class="sum"><span>๐’ฉ</span><b>${pooped||'โ€”'}</b><small>เธญเธธเธเธเธฒเธฃเธฐ</small></div><div class="sum"><span>๐’ง</span><b>${pees}</b><small>เธเธฑเธชเธชเธฒเธงเธฐ</small></div></div>`; }
+const POOPS=[{t:'good',e:'๐’ฉ',l:'เธเธเธ•เธด'},{t:'soft',e:'๐’ง',l:'เธเธดเนเธก'},{t:'hard',e:'๐ชจ',l:'เนเธเนเธ'},{t:'none',e:'๐ซ',l:'เนเธกเนเธ–เนเธฒเธข'}];
+function renderPoop(){ document.getElementById('poopRow').innerHTML=POOPS.map(p=>`<button class="poop-btn" onclick="addPoop('${p.t}','${p.e}','${p.l}')"><span>${p.e}</span>${p.l}</button>`).join(''); const list=state.poops[todayKey()]||[]; document.getElementById('poopHistory').innerHTML=list.length?list.map((p,i)=>`<div class="lr"><time>${p.time}</time> ${p.e} ${p.l}<button class="x" onclick="delPoop(${i})">โ•</button></div>`).join(''):'<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธฑเธเธ—เธถเธ</div>'; }
+function addPoop(t,e,l){ const dk=todayKey(); state.poops[dk]=state.poops[dk]||[]; state.poops[dk].push({t,e,l,time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}); save(); toast('เธเธฑเธเธ—เธถเธเนเธฅเนเธง '+e); renderPoop(); renderHealthSummary(); renderCalendar(); }
+function delPoop(i){ state.poops[todayKey()]?.splice(i,1); save(); renderPoop(); renderHealthSummary(); }
+function renderPee(){ const list=state.pees[todayKey()]||[]; document.getElementById('peeCard').innerHTML=`<div class="block-head"><h2>๐’ง เธเธฑเธชเธชเธฒเธงเธฐเธงเธฑเธเธเธตเน (${list.length})</h2></div><button class="btn-primary" onclick="addPee()">๐’ง เธเธตเน +1 เธเธฃเธฑเนเธ</button><div class="mini-log mt">${list.length?list.map((p,i)=>`<div class="lr"><time>${p.time}</time> ๐’ง เธเธฃเธฑเนเธเธ—เธตเน ${i+1}<button class="x" onclick="delPee(${i})">โ•</button></div>`).join(''):'<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธฑเธเธ—เธถเธ</div>'}</div>`; }
+function addPee(){ const dk=todayKey(); state.pees[dk]=state.pees[dk]||[]; state.pees[dk].push({time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}); save(); toast('เธเธฑเธเธ—เธถเธเธเธตเนเนเธฅเนเธง ๐’ง'); renderPee(); renderHealthSummary(); }
+function delPee(i){ state.pees[todayKey()]?.splice(i,1); save(); renderPee(); renderHealthSummary(); }
+
+document.getElementById('addWeightBtn').onclick=()=>{ const inp=document.getElementById('weightInput'); const kg=parseFloat(inp.value); if(!kg||kg<=0){toast('เนเธชเนเธเนเธณเธซเธเธฑเธเนเธซเนเธ–เธนเธ');return;} const dk=todayKey(); const ex=state.weights.find(w=>w.date===dk); if(ex)ex.kg=kg; else state.weights.push({date:dk,kg}); state.profile.weight=kg; inp.value=''; save(); toast('เธเธฑเธเธ—เธถเธเธเนเธณเธซเธเธฑเธ '+kg); renderHealth(); renderHome(); };
+function drawWeight(){ const cv=document.getElementById('weightChart'); if(!cv)return; const ctx=cv.getContext('2d'); const W=cv.width=cv.clientWidth*devicePixelRatio, H=cv.height=160*devicePixelRatio; ctx.clearRect(0,0,W,H); const data=[...state.weights].sort((a,b)=>a.date.localeCompare(b.date)).slice(-12); if(!data.length)return; const pad=28*devicePixelRatio; const kgs=data.map(d=>d.kg); const mn=Math.min(...kgs)-.2,mx=Math.max(...kgs)+.2,rg=(mx-mn)||1; const X=i=>pad+(i/Math.max(1,data.length-1))*(W-pad*2); const Y=k=>H-pad-((k-mn)/rg)*(H-pad*2); const accent=getComputedStyle(document.documentElement).getPropertyValue('--pink-deep')||'#ff6f9c'; if(data.length===1){ctx.fillStyle=accent;ctx.beginPath();ctx.arc(W/2,Y(data[0].kg),6*devicePixelRatio,0,7);ctx.fill();return;} const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'rgba(255,111,156,.3)'); g.addColorStop(1,'rgba(255,111,156,0)'); ctx.beginPath(); data.forEach((d,i)=>{i?ctx.lineTo(X(i),Y(d.kg)):ctx.moveTo(X(i),Y(d.kg));}); ctx.lineTo(X(data.length-1),H-pad);ctx.lineTo(X(0),H-pad);ctx.closePath();ctx.fillStyle=g;ctx.fill(); ctx.beginPath(); data.forEach((d,i)=>{i?ctx.lineTo(X(i),Y(d.kg)):ctx.moveTo(X(i),Y(d.kg));}); ctx.strokeStyle=accent;ctx.lineWidth=3*devicePixelRatio;ctx.lineJoin='round';ctx.stroke(); ctx.fillStyle=accent; data.forEach((d,i)=>{ctx.beginPath();ctx.arc(X(i),Y(d.kg),3.5*devicePixelRatio,0,7);ctx.fill();}); }
+
+/* MEDS */
+const SLOTL={morning:'เน€เธเนเธฒ',lunch:'เธเธฅเธฒเธเธงเธฑเธ',dinner:'เน€เธขเนเธ'};
+function medRunOut(m){ if(!m.startDate)return null; let days=m.days>0?m.days:(m.qty>0?Math.floor(m.qty/((m.slots&&m.slots.length)||1)):null); if(!days)return null; const[y,mo,d]=m.startDate.split('-').map(Number); const ro=new Date(y,mo-1,d); ro.setDate(ro.getDate()+days-1); return {runOut:todayKey(ro)}; }
+function medDaysLeft(m){ const r=medRunOut(m); if(!r)return null; const[y,mo,d]=r.runOut.split('-').map(Number); const ro=new Date(y,mo-1,d); const t=new Date(); t.setHours(0,0,0,0); return Math.round((ro-t)/86400000)+1; }
+function medActive(m){ const tk=todayKey(); if(m.startDate&&m.startDate>tk)return false; const r=medRunOut(m); if(r&&r.runOut<tk)return false; return true; }
+function renderMeds(){ document.getElementById('medCard').innerHTML=`<div class="row-head"><h2>๐’ เธขเธฒเธ—เธตเนเธเธดเธเธญเธขเธนเน</h2><button class="btn-ghost" onclick="openMedForm()">๏ผ เน€เธเธดเนเธก</button></div>`+(state.meds.length?state.meds.map(m=>{const r=medRunOut(m),left=medDaysLeft(m),slots=(m.slots||[]).map(s=>SLOTL[s]).join(', ')||'โ€”';let st=!r?'<span style="color:var(--ink-soft)">เธขเธฑเธเนเธกเนเธ•เธฑเนเธเธเธณเธเธงเธ/เธงเธฑเธ</span>':(left>0?`เธซเธกเธ” ~<b>${dkPretty(r.runOut)}</b> (เน€เธซเธฅเธทเธญ ${left} เธงเธฑเธ)`:'<b style="color:var(--danger)">เธซเธกเธ”เนเธฅเนเธง</b>');return `<div class="med-row ${medActive(m)?'':'off'}"><div class="med-ico">๐’</div><div class="med-main"><div class="med-name">${m.name}</div><div class="med-meta">${slots} ยท ${m.afterFood?'เธซเธฅเธฑเธเธญเธฒเธซเธฒเธฃ':'เธเนเธญเธเธญเธฒเธซเธฒเธฃ'}</div><div class="med-status">${st}</div>${m.note?`<div class="note-line">๐“ ${m.note}</div>`:''}</div><div class="mini-actions"><button onclick="openMedForm('${m.id}')">โ๏ธ</button><button onclick="delMed('${m.id}')">๐—‘๏ธ</button></div></div>`;}).join(''):'<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธขเธฒ</div>'); }
+function openMedForm(id){ const m=state.meds.find(x=>x.id===id)||{slots:[],afterFood:true}; const has=s=>(m.slots||[]).includes(s)?'checked':''; openModal(`<h3>${id?'เนเธเนเนเธเธขเธฒ':'๐’ เน€เธเธดเนเธกเธขเธฒ'}</h3><div class="field"><label>เธเธทเนเธญเธขเธฒ</label><input id="md-name" value="${m.name||''}"></div><div class="field"><label>เธเธดเธเธกเธทเนเธญเนเธซเธ</label><div class="chk-row"><label><input type="checkbox" id="md-m" ${has('morning')}> เน€เธเนเธฒ</label><label><input type="checkbox" id="md-l" ${has('lunch')}> เธเธฅเธฒเธเธงเธฑเธ</label><label><input type="checkbox" id="md-d" ${has('dinner')}> เน€เธขเนเธ</label></div></div><div class="field"><label><input type="checkbox" id="md-af" ${m.afterFood?'checked':''}> เธซเธฅเธฑเธเธญเธฒเธซเธฒเธฃ</label></div><div class="field"><label>เธงเธฑเธเน€เธฃเธดเนเธก</label><input type="date" id="md-start" value="${m.startDate||todayKey()}"></div><p class="help">เนเธชเนเธเธณเธเธงเธเธงเธฑเธ เธซเธฃเธทเธญเธเธณเธเธงเธเน€เธกเนเธ”/เธเธญเธ เธญเธขเนเธฒเธเนเธ”เธญเธขเนเธฒเธเธซเธเธถเนเธ</p><div class="frow"><div class="field"><label>เธเธตเนเธงเธฑเธ</label><input type="number" id="md-days" value="${m.days||''}"></div><div class="field"><label>เธเธณเธเธงเธ</label><input type="number" id="md-qty" value="${m.qty||''}"></div></div><div class="field"><label>เธซเธกเธฒเธขเน€เธซเธ•เธธ</label><input id="md-note" value="${m.note||''}"></div><button class="btn-primary" onclick="saveMed('${id||''}')">เธเธฑเธเธ—เธถเธ</button>`); }
+function saveMed(id){ const slots=[]; if(document.getElementById('md-m').checked)slots.push('morning'); if(document.getElementById('md-l').checked)slots.push('lunch'); if(document.getElementById('md-d').checked)slots.push('dinner'); const data={name:document.getElementById('md-name').value.trim()||'เธขเธฒ',slots,afterFood:document.getElementById('md-af').checked,startDate:document.getElementById('md-start').value,days:parseInt(document.getElementById('md-days').value)||0,qty:parseInt(document.getElementById('md-qty').value)||0,note:document.getElementById('md-note').value.trim()}; if(id){const m=state.meds.find(x=>x.id===id);if(m)Object.assign(m,data);}else{data.id='med'+Date.now();state.meds.push(data);} save();closeModal();toast('เธเธฑเธเธ—เธถเธเธขเธฒเนเธฅเนเธง');renderHealth(); }
+function delMed(id){ state.meds=state.meds.filter(x=>x.id!==id); save(); toast('เธฅเธเนเธฅเนเธง'); renderHealth(); }
+
+/* VET */
+function renderVet(){ const v=[...state.vetVisits].sort((a,b)=>(b.date||'').localeCompare(a.date||'')); document.getElementById('vetCard').innerHTML=`<div class="row-head"><h2>๐ฅ เธเธฃเธฐเธงเธฑเธ•เธดเธซเธฒเธซเธกเธญ</h2><button class="btn-ghost" onclick="openVetForm()">๏ผ</button></div>`+(v.length?v.map(x=>`<div class="vet-row"><div class="vet-date">${x.date?dkPretty(x.date):'โ€”'}</div><div class="vet-main">${x.reason?`<div class="med-name">๐ฉบ ${x.reason}</div>`:''}${x.diagnosis?`<div class="med-meta">${x.diagnosis}</div>`:''}${x.cost?`<div class="med-status">เธเนเธฒเธฃเธฑเธเธฉเธฒ: <b>${Number(x.cost).toLocaleString()}เธฟ</b></div>`:''}</div><div class="mini-actions"><button onclick="openVetForm('${x.id}')">โ๏ธ</button><button onclick="delVet('${x.id}')">๐—‘๏ธ</button></div></div>`).join(''):'<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธฑเธเธ—เธถเธ</div>'); }
+function openVetForm(id){ const v=state.vetVisits.find(x=>x.id===id)||{}; openModal(`<h3>${id?'เนเธเนเนเธ':'๐ฅ เน€เธเธดเนเธกเธเธฑเธเธ—เธถเธ'}</h3><div class="field"><label>เธงเธฑเธเธ—เธตเน</label><input type="date" id="vt-date" value="${v.date||todayKey()}"></div><div class="field"><label>เธชเธฒเน€เธซเธ•เธธ</label><input id="vt-reason" value="${v.reason||''}"></div><div class="field"><label>เธเธณเธงเธดเธเธดเธเธเธฑเธข</label><textarea id="vt-dx" rows="2">${v.diagnosis||''}</textarea></div><div class="field"><label>เธเนเธฒเนเธเนเธเนเธฒเธข เธฟ</label><input type="number" id="vt-cost" value="${v.cost||''}"></div><button class="btn-primary" onclick="saveVet('${id||''}')">เธเธฑเธเธ—เธถเธ</button>`); }
+function saveVet(id){ const data={date:document.getElementById('vt-date').value,reason:document.getElementById('vt-reason').value.trim(),diagnosis:document.getElementById('vt-dx').value.trim(),cost:parseFloat(document.getElementById('vt-cost').value)||0}; if(id){const v=state.vetVisits.find(x=>x.id===id);if(v)Object.assign(v,data);}else{data.id='vet'+Date.now();state.vetVisits.push(data);} save();closeModal();toast('เธเธฑเธเธ—เธถเธเนเธฅเนเธง');renderVet(); }
+function delVet(id){ state.vetVisits=state.vetVisits.filter(x=>x.id!==id); save(); toast('เธฅเธเนเธฅเนเธง'); renderVet(); }
+
+/* ===== SETTINGS / THEME ===== */
+function applyTheme(){ document.documentElement.setAttribute('data-theme', state.profile.dark?'dark':'light'); document.getElementById('darkBtn').textContent = state.profile.dark?'โ€๏ธ':'๐'; }
+document.getElementById('darkBtn').onclick=()=>{ state.profile.dark=!state.profile.dark; save(); applyTheme(); };
+document.getElementById('settingsBtn').onclick=()=>{ const p=state.profile; const c=getCloud()||{}; const facts=[[1.2,'เธ—เธณเธซเธกเธฑเธเนเธฅเนเธง'],[1.4,'เนเธกเนเธ—เธณเธซเธกเธฑเธ'],[1.0,'เธฅเธ”เธเนเธณเธซเธเธฑเธ'],[2.5,'เธฅเธนเธเนเธกเธง']];
+  openModal(`<h3>โ๏ธ เธ•เธฑเนเธเธเนเธฒ</h3>
+  <div class="field"><label>เธฃเธนเธเธเนเธญเธ</label><div class="up-area"><div class="sticker-frame" id="pfPrev">${p.photo?`<img src="${p.photo}">`:'<span class="ph-cam">๐ฑ</span>'}</div><div style="flex:1;display:flex;flex-direction:column;gap:8px"><button type="button" class="btn-soft" onclick="document.getElementById('pfFile').click()">๐“ท เธญเธฑเธเนเธซเธฅเธ”</button><button type="button" class="btn-ghost" onclick="document.getElementById('pf-photo').value='';document.getElementById('pfPrev').innerHTML='<span class=ph-cam>๐ฑ</span>'">เธฅเธ</button></div></div><input type="file" id="pfFile" accept="image/*" hidden onchange="pickPf(event)"><input type="hidden" id="pf-photo" value="${p.photo||''}"></div>
+  <div class="field"><label>เธเธทเนเธญ</label><input id="pf-name" value="${p.name}"></div>
+  <div class="field"><label>เธเนเธณเธซเธเธฑเธ (เธเธ.)</label><input type="number" step="0.1" id="pf-w" value="${p.weight}"></div>
+  <div class="field"><label>เน€เธงเธฅเธฒ 3 เธกเธทเนเธญ</label><div class="frow"><input type="time" id="pf-t0" value="${(p.mealTimes||[])[0]||'08:00'}"><input type="time" id="pf-t1" value="${(p.mealTimes||[])[1]||'13:00'}"><input type="time" id="pf-t2" value="${(p.mealTimes||[])[2]||'18:00'}"></div></div>
+  <div class="field"><label>เธฃเธฐเธ”เธฑเธเธเธดเธเธเธฃเธฃเธก</label><select id="pf-f">${facts.map(f=>`<option value="${f[0]}" ${p.factor==f[0]?'selected':''}>${f[1]}</option>`).join('')}</select></div>
+  <p class="help">เน€เธเนเธฒ: <b>${targetKcal()} kcal/เธงเธฑเธ</b></p>
+  <button class="btn-primary" onclick="saveProfile()">เธเธฑเธเธ—เธถเธ</button>
+  <div class="frow mt"><button class="btn-soft" onclick="exportData()">โฌ๏ธ เธชเธณเธฃเธญเธเธเนเธญเธกเธนเธฅ</button><button class="btn-soft" onclick="document.getElementById('impFile').click()">โฌ๏ธ เธเธนเนเธเธทเธ</button></div>
+  <input type="file" id="impFile" accept="application/json" hidden onchange="importData(event)">
+  <hr style="border:none;border-top:1px solid var(--line);margin:16px 0">
+  <div class="field"><label>โ๏ธ Cloud Sync โ€” เธเธดเธเธเนเธเนเธฒเธกเน€เธเธฃเธทเนเธญเธ (เนเธกเนเธเธฑเธเธเธฑเธ)</label>
+    <textarea id="cl-config" rows="3" placeholder='เธงเธฒเธ firebaseConfig เธเธฒเธ Firebase Console เน€เธเนเธ {"apiKey":"...","authDomain":"...","projectId":"..."}'>${c.config?JSON.stringify(c.config):''}</textarea></div>
+  <div class="field"><label>เธฃเธซเธฑเธชเธเธดเธเธเน (เธ•เธฑเนเธเน€เธญเธ เนเธเนเธฃเธซเธฑเธชเน€เธ”เธตเธขเธงเธเธฑเธเธ—เธธเธเน€เธเธฃเธทเนเธญเธ)</label><input id="cl-key" value="${c.syncKey||''}" placeholder="เน€เธเนเธ cindy-2026"></div>
+  <div class="frow"><button class="btn-soft" onclick="saveCloud()">เน€เธเธทเนเธญเธกเธ•เนเธญ & เธญเธฑเธเธเธถเนเธ โ๏ธ</button><button class="btn-soft" onclick="cloudPull()">เธ”เธถเธเธเธฒเธเธเธฅเธฒเธงเธ”เน โฌ๏ธ</button></div>
+  <div id="cl-status" class="help">${cloudReady?'โ— เน€เธเธทเนเธญเธกเธ•เนเธญเนเธฅเนเธง':'โ— เธขเธฑเธเนเธกเนเนเธ”เนเน€เธเธทเนเธญเธกเธ•เนเธญ'}</div>
+  <p class="help">เธเธญเธเธฃเธตเธ—เธตเน console.firebase.google.com โ’ เธชเธฃเนเธฒเธเนเธเธฃเน€เธเธเธ•เน โ’ Firestore Database (เน€เธเธดเธ” test mode) โ’ Project settings เธเธฑเธ”เธฅเธญเธ firebaseConfig เธกเธฒเธงเธฒเธ ยท เนเธชเนเธฃเธซเธฑเธชเธเธดเธเธเนเน€เธ”เธตเธขเธงเธเธฑเธเธ—เธธเธเน€เธเธฃเธทเนเธญเธ</p>
+  <button class="btn-ghost mt" style="width:100%" onclick="confirmReset()">๐—‘๏ธ เธฃเธตเน€เธเนเธ•เธเนเธญเธกเธนเธฅเธ—เธฑเนเธเธซเธกเธ”</button>`); };
+function pickPf(e){ const f=e.target.files&&e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=ev=>resize(ev.target.result,320,d=>{document.getElementById('pf-photo').value=d;document.getElementById('pfPrev').innerHTML=`<img src="${d}">`;}); r.readAsDataURL(f); }
+function saveProfile(){ state.profile.name=document.getElementById('pf-name').value||'Cindy'; const w=parseFloat(document.getElementById('pf-w').value); if(w>0){state.profile.weight=w; const dk=todayKey(); const ex=state.weights.find(x=>x.date===dk); if(ex)ex.kg=w; else state.weights.push({date:dk,kg:w});} state.profile.factor=parseFloat(document.getElementById('pf-f').value)||1.2; state.profile.mealTimes=[document.getElementById('pf-t0').value||'08:00',document.getElementById('pf-t1').value||'13:00',document.getElementById('pf-t2').value||'18:00']; state.profile.photo=document.getElementById('pf-photo').value||''; save(); closeModal(); toast('เธเธฑเธเธ—เธถเธเนเธฅเนเธง ๐’•'); renderAll(); }
+function confirmReset(){ openModal(`<h3>เธฃเธตเน€เธเนเธ•เธเนเธญเธกเธนเธฅเธ—เธฑเนเธเธซเธกเธ”?</h3><p class="help" style="text-align:center">เธเธนเนเธเธทเธเนเธกเนเนเธ”เน</p><div class="frow"><button class="btn-soft" onclick="closeModal()">เธขเธเน€เธฅเธดเธ</button><button class="btn-primary" onclick="doReset()">เธฅเธเน€เธฅเธข</button></div>`); }
+function doReset(){ localStorage.removeItem(KEY); state=fresh(); closeModal(); toast('เธฃเธตเน€เธเนเธ•เนเธฅเนเธง'); renderAll(); }
+
+/* ============================================================
+   โ๏ธ CLOUD SYNC (Firebase Firestore) โ€” เนเธกเนเธเธฑเธเธเธฑเธ
+   ============================================================ */
+function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=()=>rej(new Error('load')); document.head.appendChild(s); }); }
+function parseConfig(txt){ if(!txt)return null; txt=txt.trim().replace(/^const\s+\w+\s*=\s*/,'').replace(/;+\s*$/,''); try{ return JSON.parse(txt); }catch(e){ try{ return Function('return ('+txt+')')(); }catch(e2){ return null; } } }
+async function initCloud(silent){
+  const c=getCloud(); if(!c||!c.config||!c.syncKey) return;
+  try{
+    if(!window.firebase){ await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js'); await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js'); }
+    if(!firebase.apps.length) firebase.initializeApp(c.config);
+    cloudDoc=firebase.firestore().collection('cindycare').doc(c.syncKey);
+    cloudReady=true;
+    cloudDoc.onSnapshot(snap=>{ if(!snap.exists)return; const d=snap.data(); if(!d||!d.state||d.src===deviceId)return;
+      try{ const remote=JSON.parse(d.state); applyingRemote=true; state=Object.assign(fresh(),remote); if(!state.foods||!state.foods.length)state.foods=JSON.parse(JSON.stringify(SEED_FOODS)); localStorage.setItem(KEY,JSON.stringify(state)); applyingRemote=false; renderAll(); toast('เธเธดเธเธเนเธเธฒเธเธเธฅเธฒเธงเธ”เนเนเธฅเนเธง โ๏ธ'); }catch(e){ applyingRemote=false; } });
+    updateCloudStatus(); if(!silent) toast('เน€เธเธทเนเธญเธกเธ•เนเธญเธเธฅเธฒเธงเธ”เนเนเธฅเนเธง โ๏ธ');
+  }catch(e){ cloudReady=false; if(!silent) toast('เน€เธเธทเนเธญเธกเธ•เนเธญเนเธกเนเนเธ”เน โ€” เน€เธเนเธ config/เน€เธเนเธ•'); updateCloudStatus(); }
+}
+function cloudPush(){ if(!cloudReady||!cloudDoc||applyingRemote) return; clearTimeout(pushTimer); pushTimer=setTimeout(()=>{ cloudDoc.set({ state:JSON.stringify(state), updated:Date.now(), src:deviceId }).catch(()=>{}); }, 1200); }
+function cloudPull(){ if(!cloudReady||!cloudDoc){ toast('เธขเธฑเธเนเธกเนเนเธ”เนเน€เธเธทเนเธญเธกเธ•เนเธญเธเธฅเธฒเธงเธ”เน'); return; } cloudDoc.get().then(snap=>{ if(!snap.exists){ toast('เธขเธฑเธเนเธกเนเธกเธตเธเนเธญเธกเธนเธฅเธเธเธเธฅเธฒเธงเธ”เน'); return; } const d=snap.data(); const remote=JSON.parse(d.state); state=Object.assign(fresh(),remote); if(!state.foods||!state.foods.length)state.foods=JSON.parse(JSON.stringify(SEED_FOODS)); localStorage.setItem(KEY,JSON.stringify(state)); closeModal(); toast('เธ”เธถเธเธเนเธญเธกเธนเธฅเธเธฒเธเธเธฅเธฒเธงเธ”เนเนเธฅเนเธง โ๏ธ'); renderAll(); }).catch(()=>toast('เธ”เธถเธเนเธกเนเธชเธณเน€เธฃเนเธ')); }
+function updateCloudStatus(){ const el=document.getElementById('cl-status'); if(el) el.innerHTML = cloudReady?'<span style="color:var(--good)">โ— เน€เธเธทเนเธญเธกเธ•เนเธญเนเธฅเนเธง โ€” เธเธดเธเธเนเธญเธฑเธ•เนเธเธกเธฑเธ•เธด</span>':'โ— เธขเธฑเธเนเธกเนเนเธ”เนเน€เธเธทเนเธญเธกเธ•เนเธญ'; }
+async function saveCloud(){
+  const cfg=parseConfig(document.getElementById('cl-config').value); const key=document.getElementById('cl-key').value.trim();
+  if(!cfg||!cfg.apiKey){ toast('config เนเธกเนเธ–เธนเธเธ•เนเธญเธ (เธงเธฒเธ firebaseConfig)'); return; }
+  if(!key){ toast('เธ•เธฑเนเธเธฃเธซเธฑเธชเธเธดเธเธเนเธเนเธญเธ'); return; }
+  setCloud({ config:cfg, syncKey:key });
+  cloudReady=false; cloudDoc=null;
+  await initCloud(true);
+  if(!cloudReady) return;
+  cloudDoc.get().then(snap=>{
+    if(snap.exists){
+      const d=snap.data();
+      if(d&&d.state){
+        const remote=JSON.parse(d.state);
+        state=Object.assign(fresh(),remote);
+        if(!state.foods||!state.foods.length)state.foods=JSON.parse(JSON.stringify(SEED_FOODS));
+        localStorage.setItem(KEY,JSON.stringify(state));
+        closeModal(); renderAll(); updateCloudStatus();
+        toast('เชื่อมต่อแล้ว และดึงข้อมูลจากคลาวด์แล้ว ☁️');
+        return;
+      }
+    }
+    cloudDoc.set({ state:JSON.stringify(state), updated:Date.now(), src:deviceId }).then(()=>{ toast('เชื่อมต่อ & อัปขึ้นคลาวด์แล้ว ☁️'); updateCloudStatus(); }).catch(()=>toast('อัปไม่สำเร็จ'));
+  }).catch(()=>toast('เชื่อมต่อได้ แต่ตรวจข้อมูลคลาวด์ไม่สำเร็จ'));
+}
+
+/* ===== MODAL / TOAST ===== */
+const overlay=document.getElementById('modalOverlay');
+function openModal(html){ document.getElementById('modalContent').innerHTML=html; overlay.classList.add('open'); }
+function closeModal(){ overlay.classList.remove('open'); }
+document.getElementById('modalClose').onclick=closeModal;
+overlay.addEventListener('click',e=>{ if(e.target===overlay)closeModal(); });
+let toastT; function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2000); }
+
+/* expose for inline handlers */
+Object.assign(window, { showView, logMeal, undoMeal, openPack, openDay, saveNote, setFoodCat, openFood, openFoodForm, saveFood, confirmDel, delFood, pickImg, ocrPick, toggleDry, openBatch, addBatchRow, saveBatch, addPoop, delPoop, addPee, delPee, addWater, toggleTreatDone, exportData, importData, saveCloud, cloudPull, openMedForm, saveMed, delMed, openVetForm, saveVet, delVet, saveProfile, confirmReset, doReset, pickPf, closeModal });
+
+/* ===== INIT ===== */
+window.addEventListener('resize', drawWeight);
+renderAll();
+initCloud(true); // เน€เธเธทเนเธญเธกเธ•เนเธญเธเธฅเธฒเธงเธ”เนเธญเธฑเธ•เนเธเธกเธฑเธ•เธดเธ–เนเธฒเน€เธเธขเธ•เธฑเนเธเธเนเธฒเนเธงเน
+
